@@ -10,41 +10,7 @@
       - python3-requests
     state: present
 
-# --- Monerod Exporter ---
-- name: Create monerod-exporter directory
-  ansible.builtin.file:
-    path: "{{ monerod_exporter_dir }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: Deploy monerod exporter script
-  ansible.builtin.copy:
-    src: monerod_exporter.py
-    dest: "{{ monerod_exporter_dir }}/monerod_exporter.py"
-    owner: root
-    group: root
-    mode: "0755"
-  notify: restart monerod-exporter
-
-- name: Deploy monerod-exporter systemd unit
-  ansible.builtin.template:
-    src: monerod-exporter.service.j2
-    dest: /etc/systemd/system/monerod-exporter.service
-    mode: "0644"
-  notify:
-    - reload systemd
-    - restart monerod-exporter
-
-- name: Enable and start monerod-exporter
-  ansible.builtin.systemd:
-    name: monerod-exporter
-    state: started
-    enabled: true
-    daemon_reload: true
-
-# --- Unified Exporter (monerod + p2pool combined) ---
+# --- Unified Exporter (monerod + p2pool combined, replaces standalone monerod-exporter) ---
 - name: Create unified exporter directory
   ansible.builtin.file:
     path: "{{ unified_exporter_dir }}"
