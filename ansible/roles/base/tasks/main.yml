@@ -82,6 +82,21 @@
     proto: tcp
     comment: "P2Pool P2P main sidechain"
 
+- name: Configure UFW — P2Pool nano stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "2222"
+    proto: tcp
+    comment: "P2Pool nano stratum"
+
+- name: Configure UFW — P2Pool P2P nano (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37890"
+    proto: tcp
+    comment: "P2Pool P2P nano sidechain"
+
 - name: Configure UFW — Grafana from LAN
   community.general.ufw:
     rule: allow

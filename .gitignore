@@ -28,3 +28,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Migration — extracted kernel/initrd are large binaries
+scripts/migrate/vmlinuz
+scripts/migrate/initrd

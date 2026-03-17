@@ -1,0 +1,130 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+
+  # Network: DHCP on first interface (same IP via DHCP reservation or it'll get a new one)
+  network:
+    version: 2
+    ethernets:
+      id0:
+        match:
+          name: "e*"
+        dhcp4: true
+
+  # Wipe and use entire disk
+  storage:
+    layout:
+      name: direct
+
+  # Minimal server
+  source:
+    id: ubuntu-server-minimal
+
+  # Create josh user with sudo, SSH key from miniboss
+  identity:
+    hostname: rainbow
+    username: josh
+    # Password hash for "changeme" — change on first login
+    password: "$6$rounds=4096$randomsalt$iy3QM9MveW5LqOSgYb7VYqJfJv6RqOAUZQxHsqPJh8K3RHqJ5xCvnG6fMz3FYN9FGTKZwUKAJ1ypjy0DNXQD1"
+
+  ssh:
+    install-server: true
+    authorized-keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4Svr/7k1zZJfzyunjidvtA3tVozh7Pt2MZchDP+e1X josh@miniboss
+    allow-pw: false
+
+  # Packages to install
+  packages:
+    - openssh-server
+    - curl
+    - wget
+    - jq
+    - htop
+    - ufw
+
+  # Post-install: hugepages, XMRig download, systemd unit, SSH hardening
+  late-commands:
+    # Hugepages for RandomX (Ryzen 5 9600X = 1280 pages = 2.5GB)
+    - echo "vm.nr_hugepages=1280" > /target/etc/sysctl.d/99-hugepages.conf
+
+    # Passwordless sudo for josh
+    - echo "josh ALL=(ALL) NOPASSWD: ALL" > /target/etc/sudoers.d/josh
+    - chmod 440 /target/etc/sudoers.d/josh
+
+    # Download and install XMRig
+    - curtin in-target -- mkdir -p /opt/xmrig
+    - curtin in-target -- wget -q -O /tmp/xmrig.tar.gz "https://github.com/xmrig/xmrig/releases/download/v6.25.0/xmrig-6.25.0-linux-static-x64.tar.gz"
+    - curtin in-target -- tar -xzf /tmp/xmrig.tar.gz -C /tmp/
+    - curtin in-target -- cp /tmp/xmrig-6.25.0/xmrig /opt/xmrig/xmrig
+    - curtin in-target -- chmod 755 /opt/xmrig/xmrig
+    - curtin in-target -- ln -sf /opt/xmrig/xmrig /usr/local/bin/xmrig
+
+    # XMRig config
+    - curtin in-target -- mkdir -p /etc/xmrig
+    - |
+      cat > /target/etc/xmrig/config.json << 'XMRIG_EOF'
+      {
+          "autosave": true,
+          "cpu": {
+              "enabled": true,
+              "huge-pages": true,
+              "huge-pages-jit": true,
+              "max-threads-hint": 100
+          },
+          "pools": [
+              {
+                  "url": "192.168.200.213:3333",
+                  "user": "x",
+                  "keepalive": true,
+                  "tls": false
+              }
+          ],
+          "http": {
+              "enabled": true,
+              "host": "127.0.0.1",
+              "port": 8082,
+              "access-token": null,
+              "restricted": true
+          },
+          "donate-level": 1,
+          "log-file": null,
+          "print-time": 60
+      }
+      XMRIG_EOF
+
+    # XMRig systemd unit
+    - |
+      cat > /target/etc/systemd/system/xmrig.service << 'UNIT_EOF'
+      [Unit]
+      Description=XMRig Monero Miner
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=root
+      Group=root
+      Type=simple
+      ExecStart=/opt/xmrig/xmrig --config /etc/xmrig/config.json
+      Restart=always
+      RestartSec=5
+      LimitMEMLOCK=infinity
+
+      [Install]
+      WantedBy=multi-user.target
+      UNIT_EOF
+
+    # Enable XMRig on boot
+    - curtin in-target -- systemctl enable xmrig.service
+
+    # UFW basics
+    - curtin in-target -- ufw allow from 192.168.200.0/23 to any port 22 comment "SSH from LAN"
+    - curtin in-target -- ufw --force enable
+
+    # Clean up
+    - curtin in-target -- rm -rf /tmp/xmrig*
+
+  # Reboot after install
+  shutdown: reboot

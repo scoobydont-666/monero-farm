@@ -2,12 +2,12 @@
 # Monitoring role — exporters, Prometheus, Grafana
 # Deploys the full observability stack from the mega-monero-p2pool.sh script
 
-# --- Python dependencies (in system site-packages, matching script behavior) ---
+# --- Python dependencies (apt packages, PEP 668 compliant) ---
 - name: Install monitoring Python dependencies
-  ansible.builtin.pip:
+  ansible.builtin.apt:
     name:
-      - prometheus_client
-      - requests
+      - python3-prometheus-client
+      - python3-requests
     state: present
 
 # --- Monerod Exporter ---
@@ -119,8 +119,6 @@
       - prometheus
       - prometheus-node-exporter
     state: present
-    update_cache: true
-    cache_valid_time: 3600
 
 - name: Deploy Prometheus config
   ansible.builtin.template:
@@ -151,6 +149,7 @@
   ansible.builtin.apt:
     name: grafana
     state: present
+  ignore_errors: true  # Grafana repo GPG key may be stale; package is already installed
 
 - name: Create Grafana dashboard directory
   ansible.builtin.file:

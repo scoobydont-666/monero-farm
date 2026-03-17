@@ -3,7 +3,7 @@
 
 data-dir={{ monero_data_dir }}
 log-level={{ monero_log_level }}
-non-interactive=1
+# non-interactive is CLI-only, added to systemd ExecStart instead
 
 # RPC — loopback only (Critical Rule #3)
 rpc-bind-ip={{ monero_rpc_bind_ip }}

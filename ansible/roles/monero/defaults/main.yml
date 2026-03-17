@@ -5,7 +5,7 @@ monero_rpc_bind_ip: 127.0.0.1
 monero_rpc_port: 18081
 monero_p2p_port: 18080
 monero_zmq_port: 18083
-monero_prune_blockchain: true
+monero_prune_blockchain: false  # Already pruned; re-enabling triggers slow re-verify on restart
 monero_db_sync_mode: safe:sync
 monero_out_peers: 32
 monero_in_peers: 48

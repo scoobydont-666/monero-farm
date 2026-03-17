@@ -10,11 +10,10 @@ p2pool_instances:
     stratum_port: 3333
     p2p_port: 37888
     local_api_port: 37900
-  # Uncomment to add nano sidechain:
-  # - mode: nano
-  #   stratum_port: 2222
-  #   p2p_port: 37890
-  #   local_api_port: 37902
+  - mode: nano
+    stratum_port: 2222
+    p2p_port: 37890
+    local_api_port: 37902
 
 p2pool_loglevel: 2
 p2pool_stratum_bind: 0.0.0.0
