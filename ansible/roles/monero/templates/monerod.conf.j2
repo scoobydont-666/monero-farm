@@ -8,8 +8,8 @@ log-level={{ monero_log_level }}
 # RPC — loopback only (Critical Rule #3)
 rpc-bind-ip={{ monero_rpc_bind_ip }}
 rpc-bind-port={{ monero_rpc_port }}
-restricted-rpc=1
-confirm-external-bind=1
+# No restricted-rpc — RPC is loopback-only, and exporters need admin methods
+# (sync_info, get_connections, get_bans, get_alternate_chains)
 
 # P2P
 p2p-bind-ip=0.0.0.0
