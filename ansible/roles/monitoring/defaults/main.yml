@@ -1,0 +1,26 @@
+---
+# Monitoring stack defaults
+
+# Exporter ports
+monerod_exporter_port: 18090
+monerod_exporter_bind: "127.0.0.1"
+unified_exporter_port: 18096
+unified_exporter_bind: "127.0.0.1"
+
+# Exporter install paths
+monerod_exporter_dir: /opt/monerod-exporter
+unified_exporter_dir: /opt/p2pool-exporter
+
+# P2Pool built-in metrics (exposed by p2pool itself)
+p2pool_builtin_metrics_port: 18095
+
+# P2Pool observer exporter (scrapes p2pool.observer for miner stats)
+observer_exporter_port: 8000
+observer_exporter_dir: /opt/p2pool-observer-exporter
+
+# Prometheus
+prometheus_scrape_interval: 5s
+prometheus_evaluation_interval: 15s
+
+# Grafana
+grafana_dashboard_dir: /var/lib/grafana/dashboards

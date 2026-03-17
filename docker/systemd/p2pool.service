@@ -1,0 +1,26 @@
+[Unit]
+Description=P2Pool Monero Mining (mini)
+After=network-online.target monerod.service
+Requires=monerod.service
+
+[Service]
+User=monero
+Group=monero
+Type=simple
+ExecStart=/usr/local/bin/p2pool \
+  --host 127.0.0.1 \
+  --rpc-port 18081 \
+  --zmq-port 18082 \
+  --wallet TODO_YOUR_PRIMARY_ADDRESS \
+  --stratum 0.0.0.0:3333 \
+  --data-dir /var/lib/p2pool \
+  --loglevel 2 \
+  --mini
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

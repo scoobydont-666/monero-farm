@@ -1,0 +1,20 @@
+[Unit]
+Description=P2Pool Observer Prometheus Exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory={{ observer_exporter_dir }}
+ExecStart=/usr/bin/python3 {{ observer_exporter_dir }}/p2pool_observer_exporter.py \
+  --miner-address {{ monero_wallet_address }} \
+  --listen-port {{ observer_exporter_port }} \
+  --log-level INFO
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

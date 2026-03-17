@@ -1,0 +1,103 @@
+---
+# Base role — users, hugepages, firewall, NTP
+
+- name: Create monero system user
+  ansible.builtin.user:
+    name: monero
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/monero
+    create_home: false
+
+- name: Create miner system user
+  ansible.builtin.user:
+    name: miner
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Create monero data directory
+  ansible.builtin.file:
+    path: /var/lib/monero
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Set hugepages for RandomX (persistent)
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/99-hugepages.conf
+    line: "vm.nr_hugepages={{ hugepages_count | default(1280) }}"
+    regexp: "^vm\\.nr_hugepages"
+    create: true
+    mode: "0644"
+  notify: reload sysctl
+
+- name: Apply hugepages immediately
+  ansible.builtin.command: sysctl -w vm.nr_hugepages={{ hugepages_count | default(1280) }}
+  changed_when: false
+
+# UFW — LAN-only access (matches mega-monero-p2pool.sh hardening)
+- name: Configure UFW — SSH from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "22"
+    proto: tcp
+    comment: "SSH from LAN"
+
+- name: Configure UFW — monerod P2P (open, needs inbound for peers)
+  community.general.ufw:
+    rule: allow
+    port: "18080"
+    proto: tcp
+    comment: "monerod P2P"
+
+- name: Configure UFW — P2Pool mini stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "3333"
+    proto: tcp
+    comment: "P2Pool mini stratum"
+
+- name: Configure UFW — P2Pool main stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "4444"
+    proto: tcp
+    comment: "P2Pool main stratum"
+
+- name: Configure UFW — P2Pool P2P mini (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37888"
+    proto: tcp
+    comment: "P2Pool P2P mini sidechain"
+
+- name: Configure UFW — P2Pool P2P main (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37889"
+    proto: tcp
+    comment: "P2Pool P2P main sidechain"
+
+- name: Configure UFW — Grafana from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "3000"
+    proto: tcp
+    comment: "Grafana from LAN"
+
+- name: Configure UFW — default deny incoming
+  community.general.ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+
+- name: Ensure NTP is running
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    state: started
+    enabled: true

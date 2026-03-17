@@ -1,0 +1,29 @@
+# monerod configuration — managed by Ansible
+# Do not edit manually; changes will be overwritten.
+
+data-dir={{ monero_data_dir }}
+log-level={{ monero_log_level }}
+non-interactive=1
+
+# RPC — loopback only (Critical Rule #3)
+rpc-bind-ip={{ monero_rpc_bind_ip }}
+rpc-bind-port={{ monero_rpc_port }}
+restricted-rpc=1
+confirm-external-bind=1
+
+# P2P
+p2p-bind-ip=0.0.0.0
+p2p-bind-port={{ monero_p2p_port }}
+out-peers={{ monero_out_peers }}
+in-peers={{ monero_in_peers }}
+
+# ZMQ — for P2Pool block notifications
+zmq-pub=tcp://127.0.0.1:{{ monero_zmq_port }}
+
+{% if monero_prune_blockchain %}
+# Pruning — saves ~2/3 disk space
+prune-blockchain=1
+{% endif %}
+
+# Database
+db-sync-mode={{ monero_db_sync_mode }}

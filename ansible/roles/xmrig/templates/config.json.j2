@@ -1,0 +1,32 @@
+{
+    "autosave": true,
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "huge-pages-jit": true,
+{% if xmrig_threads == 'auto' %}
+        "max-threads-hint": 100
+{% else %}
+        "max-threads-hint": 100,
+        "threads": {{ xmrig_threads }}
+{% endif %}
+    },
+    "pools": [
+        {
+            "url": "{{ p2pool_stratum_host }}:{{ p2pool_stratum_port }}",
+            "user": "x",
+            "keepalive": true,
+            "tls": false
+        }
+    ],
+    "http": {
+        "enabled": true,
+        "host": "{{ xmrig_http_bind }}",
+        "port": {{ xmrig_http_port }},
+        "access-token": null,
+        "restricted": true
+    },
+    "donate-level": 1,
+    "log-file": null,
+    "print-time": 60
+}

@@ -1,0 +1,84 @@
+---
+# XMRig miner role — install binary + configure + systemd
+
+# --- Binary installation ---
+- name: Check current xmrig version
+  ansible.builtin.command: "{{ xmrig_bin }} --version"
+  register: xmrig_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Create xmrig install directory
+  ansible.builtin.file:
+    path: "{{ xmrig_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download xmrig release
+  ansible.builtin.get_url:
+    url: "{{ xmrig_download_url }}"
+    dest: "/tmp/xmrig-{{ xmrig_version }}-linux-static-x64.tar.gz"
+    mode: "0644"
+  when: xmrig_current_version.rc != 0 or xmrig_version not in xmrig_current_version.stdout
+
+- name: Extract xmrig release
+  ansible.builtin.unarchive:
+    src: "/tmp/xmrig-{{ xmrig_version }}-linux-static-x64.tar.gz"
+    dest: /tmp/
+    remote_src: true
+  when: xmrig_current_version.rc != 0 or xmrig_version not in xmrig_current_version.stdout
+
+- name: Install xmrig binary
+  ansible.builtin.copy:
+    src: "/tmp/xmrig-{{ xmrig_version }}/xmrig"
+    dest: "{{ xmrig_bin }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+  when: xmrig_current_version.rc != 0 or xmrig_version not in xmrig_current_version.stdout
+  notify: restart xmrig
+
+- name: Symlink xmrig to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ xmrig_bin }}"
+    dest: /usr/local/bin/xmrig
+    state: link
+    force: true
+
+# --- Configuration ---
+- name: Create XMRig config directory
+  ansible.builtin.file:
+    path: /etc/xmrig
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Deploy XMRig config
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /etc/xmrig/config.json
+    owner: root
+    group: root
+    mode: "0640"
+  notify: restart xmrig
+
+# --- Systemd ---
+- name: Deploy xmrig systemd unit
+  ansible.builtin.template:
+    src: xmrig.service.j2
+    dest: /etc/systemd/system/xmrig.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart xmrig
+
+- name: Enable and start xmrig
+  ansible.builtin.systemd:
+    name: xmrig
+    state: started
+    enabled: true
+    daemon_reload: true

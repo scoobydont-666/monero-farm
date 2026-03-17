@@ -1,0 +1,84 @@
+---
+# monerod full node role — install binary + configure + systemd
+
+# --- Binary installation ---
+- name: Check current monerod version
+  ansible.builtin.command: /usr/local/bin/monerod --version
+  register: monerod_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Create monero install directory
+  ansible.builtin.file:
+    path: "{{ monero_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download monerod release
+  ansible.builtin.get_url:
+    url: "{{ monero_download_url }}"
+    dest: "/tmp/monero-linux-x64-v{{ monero_version }}.tar.bz2"
+    mode: "0644"
+  when: monerod_current_version.rc != 0 or ('v' + monero_version) not in monerod_current_version.stdout
+
+- name: Extract monerod release
+  ansible.builtin.unarchive:
+    src: "/tmp/monero-linux-x64-v{{ monero_version }}.tar.bz2"
+    dest: /tmp/
+    remote_src: true
+  when: monerod_current_version.rc != 0 or ('v' + monero_version) not in monerod_current_version.stdout
+
+- name: Install monerod binary
+  ansible.builtin.copy:
+    src: "/tmp/monero-x86_64-linux-gnu-v{{ monero_version }}/monerod"
+    dest: "{{ monero_install_dir }}/monerod"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+  when: monerod_current_version.rc != 0 or ('v' + monero_version) not in monerod_current_version.stdout
+  notify: restart monerod
+
+- name: Symlink monerod to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ monero_install_dir }}/monerod"
+    dest: /usr/local/bin/monerod
+    state: link
+    force: true
+
+# --- Configuration ---
+- name: Ensure config directory exists
+  ansible.builtin.file:
+    path: /etc/monero
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Deploy monerod config
+  ansible.builtin.template:
+    src: monerod.conf.j2
+    dest: /etc/monero/monerod.conf
+    owner: root
+    group: root
+    mode: "0640"
+  notify: restart monerod
+
+# --- Systemd ---
+- name: Deploy monerod systemd unit
+  ansible.builtin.template:
+    src: monerod.service.j2
+    dest: /etc/systemd/system/monerod.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart monerod
+
+- name: Enable and start monerod
+  ansible.builtin.systemd:
+    name: monerod
+    state: started
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,174 @@
+{
+  "title": "Monero + P2Pool Node",
+  "tags": ["monero", "p2pool"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Monerod Sync %",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "targets": [
+        {
+          "expr": "100 * monerod_height / max(monerod_target_height, 1)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Monerod Height",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "targets": [
+        {
+          "expr": "monerod_height",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Monerod Peers (out/in)",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "targets": [
+        {
+          "expr": "monerod_outgoing_connections_count",
+          "legendFormat": "outgoing",
+          "refId": "A"
+        },
+        {
+          "expr": "monerod_incoming_connections_count",
+          "legendFormat": "incoming",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Mempool Size",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "targets": [
+        {
+          "expr": "monerod_tx_pool_size",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Txpool Fees (XMR)",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "targets": [
+        {
+          "expr": "monero_txpool_backlog_total_fee / 1e12",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Network Difficulty",
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "targets": [
+        {
+          "expr": "monerod_difficulty",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "P2Pool Stratum Hashrate (15m)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "targets": [
+        {
+          "expr": "p2pool_stratum_hashrate_15m",
+          "legendFormat": "{{sidechain}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "P2Pool Connections (P2P + Stratum)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "targets": [
+        {
+          "expr": "p2pool_p2p_connections",
+          "legendFormat": "p2p {{sidechain}}",
+          "refId": "A"
+        },
+        {
+          "expr": "p2pool_stratum_connections",
+          "legendFormat": "stratum {{sidechain}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "P2Pool Shares Found",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "targets": [
+        {
+          "expr": "p2pool_stratum_shares_found",
+          "legendFormat": "{{sidechain}} found",
+          "refId": "A"
+        },
+        {
+          "expr": "p2pool_stratum_shares_failed",
+          "legendFormat": "{{sidechain}} failed",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "P2Pool Effort %",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "targets": [
+        {
+          "expr": "p2pool_stratum_current_effort_percent",
+          "legendFormat": "current {{sidechain}}",
+          "refId": "A"
+        },
+        {
+          "expr": "p2pool_stratum_average_effort_percent",
+          "legendFormat": "avg {{sidechain}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "System CPU Usage",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "targets": [
+        {
+          "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[3m]))",
+          "legendFormat": "CPU usage",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "System Memory Usage",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "legendFormat": "used",
+          "refId": "A"
+        },
+        {
+          "expr": "node_memory_MemTotal_bytes",
+          "legendFormat": "total",
+          "refId": "B"
+        }
+      ]
+    }
+  ]
+}

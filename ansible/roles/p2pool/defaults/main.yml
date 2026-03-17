@@ -1,0 +1,33 @@
+---
+# P2Pool instances to deploy on this host.
+# Each entry creates a separate systemd unit: p2pool-<mode>.service
+p2pool_instances:
+  - mode: main
+    stratum_port: 4444
+    p2p_port: 37889
+    local_api_port: 37901
+  - mode: mini
+    stratum_port: 3333
+    p2p_port: 37888
+    local_api_port: 37900
+  # Uncomment to add nano sidechain:
+  # - mode: nano
+  #   stratum_port: 2222
+  #   p2p_port: 37890
+  #   local_api_port: 37902
+
+p2pool_loglevel: 2
+p2pool_stratum_bind: 0.0.0.0
+p2pool_data_dir: /var/lib/p2pool
+p2pool_install_dir: /opt/p2pool
+p2pool_bin: /opt/p2pool/p2pool
+p2pool_api_base: /opt/p2pool
+
+# Binary installation
+p2pool_version: "4.14"
+p2pool_download_url: "https://github.com/SChernykh/p2pool/releases/download/v{{ p2pool_version }}/p2pool-v{{ p2pool_version }}-linux-x64.tar.gz"
+
+# Inherited from inventory or monero role defaults
+monero_rpc_port: 18081
+monero_zmq_port: 18083
+monero_wallet_address: "TODO_YOUR_PRIMARY_ADDRESS"

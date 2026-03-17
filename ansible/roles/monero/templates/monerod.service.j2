@@ -1,0 +1,16 @@
+[Unit]
+Description=Monero Full Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/usr/local/bin/monerod --config-file /etc/monero/monerod.conf
+Restart=always
+RestartSec=5
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,83 @@
+---
+# P2Pool role — install binary + deploy multiple sidechain instances
+
+# --- Binary installation ---
+- name: Check current p2pool version
+  ansible.builtin.command: "{{ p2pool_bin }} --version"
+  register: p2pool_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Create p2pool install directory
+  ansible.builtin.file:
+    path: "{{ p2pool_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download p2pool release
+  ansible.builtin.get_url:
+    url: "{{ p2pool_download_url }}"
+    dest: "/tmp/p2pool-v{{ p2pool_version }}-linux-x64.tar.gz"
+    mode: "0644"
+  when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
+
+- name: Extract p2pool release
+  ansible.builtin.unarchive:
+    src: "/tmp/p2pool-v{{ p2pool_version }}-linux-x64.tar.gz"
+    dest: /tmp/
+    remote_src: true
+  when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
+
+- name: Install p2pool binary
+  ansible.builtin.copy:
+    src: "/tmp/p2pool-v{{ p2pool_version }}-linux-x64/p2pool"
+    dest: "{{ p2pool_bin }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+  when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
+
+# --- Directories ---
+- name: Create P2Pool data directory
+  ansible.builtin.file:
+    path: "{{ p2pool_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Create P2Pool data-api directories
+  ansible.builtin.file:
+    path: "{{ p2pool_api_base }}/api-{{ item.mode }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  loop: "{{ p2pool_instances }}"
+  loop_control:
+    label: "{{ item.mode }}"
+
+# --- Systemd units ---
+- name: Deploy p2pool systemd units
+  ansible.builtin.template:
+    src: p2pool.service.j2
+    dest: "/etc/systemd/system/p2pool-{{ item.mode }}.service"
+    mode: "0644"
+  loop: "{{ p2pool_instances }}"
+  loop_control:
+    label: "{{ item.mode }}"
+  notify:
+    - reload systemd
+
+- name: Enable and start p2pool instances
+  ansible.builtin.systemd:
+    name: "p2pool-{{ item.mode }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  loop: "{{ p2pool_instances }}"
+  loop_control:
+    label: "{{ item.mode }}"

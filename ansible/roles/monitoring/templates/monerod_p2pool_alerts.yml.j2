@@ -1,0 +1,93 @@
+groups:
+- name: monerod-p2pool
+  rules:
+
+  - alert: MonerodDown
+    expr: up{job="monerod"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monerod is DOWN"
+      description: "Prometheus cannot scrape the monerod exporter on {{ '{{' }} $labels.instance {{ '}}' }}."
+
+  - alert: MonerodNotSyncing
+    expr: (monerod_target_height - monerod_height) > 5000
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Monerod is too far behind"
+      description: "Target height is {{ '{{' }} $value {{ '}}' }} blocks ahead. Node is not syncing fast enough."
+
+  - alert: MonerodZeroPeers
+    expr: (monerod_outgoing_connections_count + monerod_incoming_connections_count) == 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Monerod has no peers"
+      description: "Node is running but has no peers for more than 5 minutes."
+
+  - alert: P2PoolExporterDown
+    expr: up{job="monero_p2pool_exporter"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Unified XMR Exporter is down"
+      description: "Prometheus cannot scrape the unified exporter on {{ '{{' }} $labels.instance {{ '}}' }}."
+
+  - alert: P2PoolNoStratumConnections
+    expr: p2pool_stratum_connections == 0
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: "No miners connected to P2Pool"
+      description: "Sidechain={{ '{{' }} $labels.sidechain {{ '}}' }} has no miners for 15 minutes."
+
+  - alert: P2PoolLowHashrate
+    expr: p2pool_stratum_hashrate_15m < 10000
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Very low P2Pool hashrate"
+      description: "Hashrate on sidechain {{ '{{' }} $labels.sidechain {{ '}}' }} dropped below 10 kH/s."
+
+  - alert: P2PoolNoBlocksFoundRecently
+    expr: (time() - p2pool_pool_last_block_found_timestamp) > (24 * 3600)
+    for: 1h
+    labels:
+      severity: info
+    annotations:
+      summary: "P2Pool has not found a block in 24 hours"
+      description: "Sidechain {{ '{{' }} $labels.sidechain {{ '}}' }} block time seems unusually long."
+
+  - alert: HighCPULoad
+    expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[3m]))) > 0.9
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU Load"
+      description: "CPU load has exceeded 90% for 10 minutes."
+
+  - alert: LowDiskSpace
+    expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.05
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Low disk space"
+      description: "Disk has less than 5% remaining."
+
+  - alert: HighRAMUsage
+    expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.90
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High RAM usage"
+      description: "Machine RAM usage exceeded 90%."
