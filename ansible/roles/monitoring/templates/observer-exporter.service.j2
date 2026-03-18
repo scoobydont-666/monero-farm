@@ -5,16 +5,20 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=exporter
+Group=exporter
 WorkingDirectory={{ observer_exporter_dir }}
 ExecStart=/usr/bin/python3 {{ observer_exporter_dir }}/p2pool_observer_exporter.py \
   --miner-address {{ monero_wallet_address }} \
+  --listen-address {{ observer_exporter_bind | default('127.0.0.1') }} \
   --listen-port {{ observer_exporter_port }} \
   --log-level INFO
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
+ProtectSystem=strict
+PrivateTmp=true
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target

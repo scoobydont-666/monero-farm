@@ -3,10 +3,16 @@ Description=Unified XMR Exporter (monerod + p2pool main + p2pool mini)
 After=network.target
 
 [Service]
-User=root
-ExecStart=/usr/bin/python3 {{ unified_exporter_dir }}/p2pool_exporter.py
+User=exporter
+Group=exporter
+ExecStart=/usr/bin/python3 {{ unified_exporter_dir }}/p2pool_exporter.py \
+  --listen-address {{ unified_exporter_bind }} \
+  --listen-port {{ unified_exporter_port }}
 Restart=always
 RestartSec=3
+ProtectSystem=strict
+PrivateTmp=true
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target

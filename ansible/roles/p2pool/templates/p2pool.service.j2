@@ -4,8 +4,8 @@ After=network-online.target monerod.service
 Wants=monerod.service
 
 [Service]
-User=root
-Group=root
+User=p2pool
+Group=p2pool
 Type=simple
 ExecStart={{ p2pool_bin }} \
   --wallet {{ monero_wallet_address }} \
@@ -29,6 +29,10 @@ ExecStart={{ p2pool_bin }} \
 Restart=always
 RestartSec=5
 LimitNOFILE=65535
+ProtectSystem=strict
+ReadWritePaths=/var/lib/p2pool /opt/p2pool
+PrivateTmp=true
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target

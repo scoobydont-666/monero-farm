@@ -15,13 +15,75 @@
     system: true
     shell: /usr/sbin/nologin
 
+- name: Create p2pool system user
+  ansible.builtin.user:
+    name: p2pool
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create exporter system user
+  ansible.builtin.user:
+    name: exporter
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
 - name: Create monero data directory
   ansible.builtin.file:
     path: /var/lib/monero
     state: directory
+    owner: monero
+    group: monero
+    mode: "0750"
+
+- name: Create p2pool data directory
+  ansible.builtin.file:
+    path: /var/lib/p2pool
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+
+- name: Set ownership on monero config
+  ansible.builtin.file:
+    path: /etc/monero
+    state: directory
+    owner: monero
+    group: monero
+    mode: "0750"
+
+- name: Set ownership on monero binary dir
+  ansible.builtin.file:
+    path: /opt/monero
+    state: directory
     owner: root
-    group: root
+    group: monero
     mode: "0755"
+
+- name: Set ownership on p2pool dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+  loop:
+    - /opt/p2pool
+    - /opt/p2pool/api-main
+    - /opt/p2pool/api-mini
+    - /opt/p2pool/api-nano
+
+- name: Set ownership on exporter dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: exporter
+    group: exporter
+    mode: "0755"
+  loop:
+    - /opt/p2pool-exporter
+    - /opt/p2pool-observer-exporter
 
 - name: Set hugepages for RandomX (persistent)
   ansible.builtin.lineinfile:

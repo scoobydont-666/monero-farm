@@ -4,13 +4,17 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=root
-Group=root
+User=monero
+Group=monero
 Type=simple
 ExecStart=/usr/local/bin/monerod --non-interactive --config-file /etc/monero/monerod.conf
 Restart=always
 RestartSec=5
 TimeoutStopSec=120
+ProtectSystem=strict
+ReadWritePaths=/var/lib/monero
+PrivateTmp=true
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
