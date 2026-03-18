@@ -27,6 +27,7 @@ From /api/payouts/<address>?search_limit=N:
 
 import argparse
 import logging
+import os
 import time
 from typing import Any, Dict
 
@@ -297,8 +298,8 @@ def main(argv=None) -> int:
     )
     parser.add_argument(
         "--miner-address",
-        required=True,
-        help="Monero address used with mini.p2pool.observer",
+        default=os.environ.get("MINER_ADDRESS"),
+        help="Monero address (or set MINER_ADDRESS env var)",
     )
     parser.add_argument(
         "--listen-address",
