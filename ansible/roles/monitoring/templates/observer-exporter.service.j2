@@ -19,6 +19,13 @@ Environment=MINER_ADDRESS={{ monero_wallet_address }}
 ProtectSystem=strict
 PrivateTmp=true
 NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target

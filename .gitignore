@@ -32,3 +32,6 @@ Thumbs.db
 # Migration — extracted kernel/initrd are large binaries
 scripts/migrate/vmlinuz
 scripts/migrate/initrd
+
+# Kin semantic VCS
+.kin/

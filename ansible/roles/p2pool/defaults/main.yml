@@ -24,6 +24,7 @@ p2pool_api_base: /opt/p2pool
 
 # Binary installation
 p2pool_version: "4.14"
+p2pool_sha256: "e64f6f774dc35352b8ae4397ccdb92ce0cc935cdfb100eac58d44e49f8796a01"
 p2pool_download_url: "https://github.com/SChernykh/p2pool/releases/download/v{{ p2pool_version }}/p2pool-v{{ p2pool_version }}-linux-x64.tar.gz"
 
 # Inherited from inventory or monero role defaults

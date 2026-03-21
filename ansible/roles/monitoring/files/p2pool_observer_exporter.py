@@ -303,8 +303,8 @@ def main(argv=None) -> int:
     )
     parser.add_argument(
         "--listen-address",
-        default="0.0.0.0",
-        help="Address to listen on for Prometheus scrapes (default: 0.0.0.0)",
+        default="127.0.0.1",
+        help="Address to listen on for Prometheus scrapes (default: 127.0.0.1)",
     )
     parser.add_argument(
         "--listen-port",

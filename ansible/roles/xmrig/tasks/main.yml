@@ -20,6 +20,7 @@
   ansible.builtin.get_url:
     url: "{{ xmrig_download_url }}"
     dest: "/tmp/xmrig-{{ xmrig_version }}-linux-static-x64.tar.gz"
+    checksum: "sha256:{{ xmrig_sha256 }}"
     mode: "0644"
   when: xmrig_current_version.rc != 0 or xmrig_version not in xmrig_current_version.stdout
 

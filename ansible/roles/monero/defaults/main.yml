@@ -12,5 +12,6 @@ monero_in_peers: 48
 
 # Binary installation
 monero_version: "0.18.4.6"
+monero_sha256: "60cfc32d39c6fe6c19b23513d02017fe9055d2e412ee4cbc30fa40ba811fe052"
 monero_install_dir: /opt/monero
 monero_download_url: "https://downloads.getmonero.org/cli/monero-linux-x64-v{{ monero_version }}.tar.bz2"

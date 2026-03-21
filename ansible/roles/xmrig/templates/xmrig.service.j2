@@ -17,6 +17,13 @@ ProtectSystem=strict
 ReadWritePaths=/etc/xmrig
 PrivateTmp=true
 NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=CAP_SYS_RESOURCE
 
 [Install]
 WantedBy=multi-user.target

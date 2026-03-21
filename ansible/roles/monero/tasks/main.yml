@@ -20,6 +20,7 @@
   ansible.builtin.get_url:
     url: "{{ monero_download_url }}"
     dest: "/tmp/monero-linux-x64-v{{ monero_version }}.tar.bz2"
+    checksum: "sha256:{{ monero_sha256 }}"
     mode: "0644"
   when: monerod_current_version.rc != 0 or ('v' + monero_version) not in monerod_current_version.stdout
 

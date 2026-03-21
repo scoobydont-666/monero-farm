@@ -20,6 +20,7 @@
   ansible.builtin.get_url:
     url: "{{ p2pool_download_url }}"
     dest: "/tmp/p2pool-v{{ p2pool_version }}-linux-x64.tar.gz"
+    checksum: "sha256:{{ p2pool_sha256 }}"
     mode: "0644"
   when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
 

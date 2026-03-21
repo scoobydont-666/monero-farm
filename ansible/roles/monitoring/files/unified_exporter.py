@@ -757,8 +757,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Prometheus exporter for Monero + P2Pool")
     parser.add_argument(
         "--listen-address",
-        default="0.0.0.0",
-        help="Address to listen on (default: 0.0.0.0)",
+        default="127.0.0.1",
+        help="Address to listen on (default: 127.0.0.1)",
     )
     parser.add_argument(
         "--listen-port",
