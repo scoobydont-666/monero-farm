@@ -76,7 +76,7 @@ autoinstall:
           },
           "pools": [
               {
-                  "url": "192.168.200.213:3333",
+                  "url": "FULLNODE_IP:3333",
                   "user": "x",
                   "keepalive": true,
                   "tls": false
@@ -120,7 +120,8 @@ autoinstall:
     - curtin in-target -- systemctl enable xmrig.service
 
     # UFW basics
-    - curtin in-target -- ufw allow from 192.168.200.0/23 to any port 22 comment "SSH from LAN"
+    # EDIT: Replace subnet below with your LAN CIDR
+    - curtin in-target -- ufw allow from 192.168.x.0/23 to any port 22 comment "SSH from LAN"
     - curtin in-target -- ufw --force enable
 
     # Clean up

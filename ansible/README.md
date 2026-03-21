@@ -50,7 +50,7 @@ Creates system users (`monero`, `miner`), configures hugepages for RandomX, sets
 
 **Key variables** (`roles/base/defaults/main.yml`):
 - `hugepages_count`: Number of 2MB hugepages (default: 1280 = 2.5 GB)
-- `lan_subnet`: CIDR for UFW source restriction (default: `192.168.200.0/23`)
+- `lan_subnet`: CIDR for UFW source restriction (default: `192.168.x.0/23`)
 
 ### monero
 
@@ -97,11 +97,11 @@ Edit `inventory/hosts.yml`:
 miners:
   hosts:
     existing-miner:
-      ansible_host: 192.168.200.213
+      ansible_host: 192.168.x.x
       # ...
     new-miner:
-      ansible_host: 192.168.200.NNN
-      ansible_user: josh
+      ansible_host: 192.168.x.x
+      ansible_user: youruser
       xmrig_threads: auto
       xmrig_api_port: 8082
 ```

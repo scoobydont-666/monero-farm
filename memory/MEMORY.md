@@ -14,7 +14,7 @@
 - miner: runs xmrig
 
 ## Fleet
-- 1 node deployed (miniboss / 192.168.200.213)
+- 1 node deployed (update ansible/inventory/hosts.yml with your IPs)
 - Add miners to ansible/inventory/hosts.yml
 
 ## Bootstrap Date

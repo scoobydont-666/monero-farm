@@ -18,10 +18,10 @@ set -euo pipefail
 TARGET_IP="${1:?Usage: $0 <target-ip> [ssh-user]}"
 SSH_USER="${2:-root}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MINIBOSS_IP="192.168.200.213"
-MINIBOSS_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4Svr/7k1zZJfzyunjidvtA3tVozh7Pt2MZchDP+e1X josh@miniboss"
+MINIBOSS_IP="${MINIBOSS_IP:?Set MINIBOSS_IP before running}"
+MINIBOSS_PUBKEY="${MINIBOSS_PUBKEY:?Set MINIBOSS_PUBKEY before running}"
 XMRIG_VERSION="6.25.0"
-P2POOL_HOST="192.168.200.213"
+P2POOL_HOST="${MINIBOSS_IP}"
 P2POOL_PORT="3333"
 
 echo "============================================="
@@ -343,7 +343,7 @@ XMRIG_UNIT
     systemctl enable xmrig.service
 
     # UFW
-    ufw allow from 192.168.200.0/23 to any port 22 comment 'SSH from LAN'
+    ufw allow from "${LAN_SUBNET:-192.168.0.0/16}" to any port 22 comment 'SSH from LAN'
     ufw --force enable
 
     # Install GRUB

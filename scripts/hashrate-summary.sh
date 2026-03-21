@@ -7,7 +7,7 @@ set -euo pipefail
 
 MINERS=("127.0.0.1:8082")
 # Add remote miners here:
-# MINERS+=("192.168.200.164:8082" "192.168.200.165:8082")
+# MINERS+=("192.168.x.x:8082" "192.168.x.x:8082")
 
 WATCH=false
 [[ "${1:-}" == "--watch" ]] && WATCH=true
