@@ -1,3 +1,3 @@
 ---
 hugepages_count: 1280  # 1280 × 2MB = 2.5 GB (RandomX needs ~2.5 GB)
-lan_subnet: "192.168.200.0/23"  # /23 covers 192.168.200.x and 192.168.201.x
+lan_subnet: "192.168.0.0/16"  # Override in inventory for your actual LAN CIDR

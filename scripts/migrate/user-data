@@ -33,7 +33,7 @@ autoinstall:
   ssh:
     install-server: true
     authorized-keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4Svr/7k1zZJfzyunjidvtA3tVozh7Pt2MZchDP+e1X josh@miniboss
+      - YOUR_SSH_PUBLIC_KEY_HERE
     allow-pw: false
 
   # Packages to install

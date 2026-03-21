@@ -114,7 +114,7 @@ ansible-playbook -i inventory/hosts.yml site.yml --tags monitoring --connection=
 9. **Script conventions**: `#!/usr/bin/env bash`, `set -euo pipefail` (matches AI Server conventions)
 10. **XMRig HTTP API port**: 8082, NOT default 8080 (collision avoidance with OpenWebUI on gateway)
 11. **Idempotent always**: Never break running services. Verify against script, live system, and docs before changes.
-12. **LAN subnet**: 192.168.200.0/23 (not /24) — UFW rules restrict stratum + Grafana to LAN only
+12. **LAN subnet**: Set `lan_subnet` in `roles/base/defaults/main.yml` — UFW rules restrict stratum + Grafana to LAN only
 
 ## Monitoring Stack
 
