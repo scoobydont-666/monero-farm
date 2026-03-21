@@ -2,7 +2,17 @@
 set -euo pipefail
 #
 # HiveOS → Ubuntu 24.04 In-Place Migration (debootstrap method)
-# Runs FROM miniboss, orchestrates the target over SSH.
+# Runs FROM your fullnode, orchestrates the target miner over SSH.
+#
+# Required environment variables:
+#   MINIBOSS_IP      — IP of your fullnode (P2Pool stratum host)
+#   MINIBOSS_PUBKEY  — SSH public key to authorize on the target
+#   LAN_SUBNET       — (optional) LAN CIDR for UFW, default: 192.168.0.0/16
+#
+# Usage:
+#   export MINIBOSS_IP=192.168.x.x
+#   export MINIBOSS_PUBKEY="ssh-ed25519 AAAA... user@host"
+#   ./hiveos-to-ubuntu.sh <target-ip> [ssh-user]
 #
 # Method:
 #   1. debootstrap Ubuntu 24.04 (noble) into RAM (tmpfs) on the target

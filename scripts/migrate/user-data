@@ -1,3 +1,10 @@
+# cloud-config for Ubuntu autoinstall (used with the HiveOS migration script)
+#
+# Before using, replace these placeholders:
+#   YOUR_SSH_PUBLIC_KEY_HERE  — your SSH public key (ssh-ed25519 AAAA... user@host)
+#   FULLNODE_IP               — IP of your fullnode running P2Pool stratum
+#   192.168.x.0/23            — your LAN CIDR for UFW SSH restriction
+#
 #cloud-config
 autoinstall:
   version: 1

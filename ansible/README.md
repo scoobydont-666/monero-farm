@@ -50,7 +50,7 @@ Creates system users (`monero`, `miner`), configures hugepages for RandomX, sets
 
 **Key variables** (`roles/base/defaults/main.yml`):
 - `hugepages_count`: Number of 2MB hugepages (default: 1280 = 2.5 GB)
-- `lan_subnet`: CIDR for UFW source restriction (default: `192.168.x.0/23`)
+- `lan_subnet`: CIDR for UFW source restriction (default: `192.168.0.0/16` — override in inventory for your actual LAN)
 
 ### monero
 

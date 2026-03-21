@@ -148,14 +148,32 @@ Update versions in `ansible/roles/*/defaults/main.yml` and re-run the playbook t
 
 - `ansible/inventory/hosts.yml` is **gitignored** — it contains your wallet address and host IPs
 - Copy `hosts.yml.example` and fill in your values
-- All RPC ports bind to loopback only
+- All services run as dedicated users (`monero`, `p2pool`, `miner`, `exporter`) — not root
+- systemd hardening: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`
+- All RPC and exporter ports bind to loopback only
+- Grafana runs HTTPS (self-signed cert, generated on first deploy)
 - UFW restricts stratum + Grafana to LAN subnet
-- monerod P2P and P2Pool P2P are open for peer discovery
+- monerod P2P and P2Pool P2P are open (required for peer discovery)
+
+## Migration (HiveOS → Ubuntu)
+
+For miners currently running HiveOS, `scripts/migrate/` has an in-place migration tool:
+
+```bash
+# Set required env vars
+export MINIBOSS_IP=192.168.x.x          # your fullnode IP
+export MINIBOSS_PUBKEY="ssh-ed25519 AAAA... user@host"
+
+# Run from fullnode, targeting the miner
+./scripts/migrate/hiveos-to-ubuntu.sh <miner-ip> [ssh-user]
+```
+
+Also includes `user-data` for Ubuntu autoinstall — edit the placeholders (`YOUR_SSH_PUBLIC_KEY_HERE`, `FULLNODE_IP`, LAN CIDR) before use.
 
 ## Origin
 
-This project was bootstrapped by `/mnt/data/mega-monero-p2pool.sh` — a single-shot installer script. The Ansible roles are the "v2" that codifies, extends, and fixes that script for repeatable fleet management.
+This project was bootstrapped by a single-shot installer script. The Ansible roles are the "v2" that codifies, extends, and fixes that script for repeatable fleet management.
 
 ## License
 
-Private repository. All rights reserved.
+[MIT](LICENSE)
