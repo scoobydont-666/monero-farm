@@ -1,0 +1,13 @@
+[Unit]
+Description=Monero Prometheus Exporter (Custom)
+After=monerod.service network.target
+Wants=monerod.service
+
+[Service]
+User=root
+ExecStart=/usr/bin/python3 {{ monerod_exporter_dir }}/monerod_exporter.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart xmrig
+  ansible.builtin.systemd:
+    name: xmrig
+    state: restarted

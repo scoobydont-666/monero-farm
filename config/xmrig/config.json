@@ -1,0 +1,27 @@
+{
+    "autosave": true,
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "huge-pages-jit": true,
+        "max-threads-hint": 100
+    },
+    "pools": [
+        {
+            "url": "127.0.0.1:3333",
+            "user": "x",
+            "keepalive": true,
+            "tls": false
+        }
+    ],
+    "http": {
+        "enabled": true,
+        "host": "127.0.0.1",
+        "port": 8082,
+        "access-token": null,
+        "restricted": true
+    },
+    "donate-level": 1,
+    "log-file": null,
+    "print-time": 60
+}

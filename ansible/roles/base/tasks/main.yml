@@ -1,0 +1,180 @@
+---
+# Base role — users, hugepages, firewall, NTP
+
+- name: Create monero system user
+  ansible.builtin.user:
+    name: monero
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/monero
+    create_home: false
+
+- name: Create miner system user
+  ansible.builtin.user:
+    name: miner
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Create p2pool system user
+  ansible.builtin.user:
+    name: p2pool
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create exporter system user
+  ansible.builtin.user:
+    name: exporter
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create monero data directory
+  ansible.builtin.file:
+    path: /var/lib/monero
+    state: directory
+    owner: monero
+    group: monero
+    mode: "0750"
+
+- name: Create p2pool data directory
+  ansible.builtin.file:
+    path: /var/lib/p2pool
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+
+- name: Set ownership on monero config
+  ansible.builtin.file:
+    path: /etc/monero
+    state: directory
+    owner: monero
+    group: monero
+    mode: "0750"
+
+- name: Set ownership on monero binary dir
+  ansible.builtin.file:
+    path: /opt/monero
+    state: directory
+    owner: root
+    group: monero
+    mode: "0755"
+
+- name: Set ownership on p2pool dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+  loop:
+    - /opt/p2pool
+    - /opt/p2pool/api-main
+    - /opt/p2pool/api-mini
+    - /opt/p2pool/api-nano
+
+- name: Set ownership on exporter dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: exporter
+    group: exporter
+    mode: "0755"
+  loop:
+    - /opt/p2pool-exporter
+    - /opt/p2pool-observer-exporter
+
+- name: Set hugepages for RandomX (persistent)
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/99-hugepages.conf
+    line: "vm.nr_hugepages={{ hugepages_count | default(1280) }}"
+    regexp: "^vm\\.nr_hugepages"
+    create: true
+    mode: "0644"
+  notify: reload sysctl
+
+- name: Apply hugepages immediately
+  ansible.builtin.command: sysctl -w vm.nr_hugepages={{ hugepages_count | default(1280) }}
+  changed_when: false
+
+# UFW — LAN-only access (matches mega-monero-p2pool.sh hardening)
+- name: Configure UFW — SSH from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "22"
+    proto: tcp
+    comment: "SSH from LAN"
+
+- name: Configure UFW — monerod P2P (open, needs inbound for peers)
+  community.general.ufw:
+    rule: allow
+    port: "18080"
+    proto: tcp
+    comment: "monerod P2P"
+
+- name: Configure UFW — P2Pool mini stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "3333"
+    proto: tcp
+    comment: "P2Pool mini stratum"
+
+- name: Configure UFW — P2Pool main stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "4444"
+    proto: tcp
+    comment: "P2Pool main stratum"
+
+- name: Configure UFW — P2Pool P2P mini (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37888"
+    proto: tcp
+    comment: "P2Pool P2P mini sidechain"
+
+- name: Configure UFW — P2Pool P2P main (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37889"
+    proto: tcp
+    comment: "P2Pool P2P main sidechain"
+
+- name: Configure UFW — P2Pool nano stratum from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "2222"
+    proto: tcp
+    comment: "P2Pool nano stratum"
+
+- name: Configure UFW — P2Pool P2P nano (open, sidechain gossip)
+  community.general.ufw:
+    rule: allow
+    port: "37890"
+    proto: tcp
+    comment: "P2Pool P2P nano sidechain"
+
+- name: Configure UFW — Grafana from LAN
+  community.general.ufw:
+    rule: allow
+    src: "{{ lan_subnet }}"
+    port: "3000"
+    proto: tcp
+    comment: "Grafana from LAN"
+
+- name: Configure UFW — default deny incoming
+  community.general.ufw:
+    state: enabled
+    direction: incoming
+    policy: deny
+
+- name: Ensure NTP is running
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    state: started
+    enabled: true

@@ -1,0 +1,41 @@
+---
+# Monero Farm — Master Playbook
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml site.yml
+#   ansible-playbook -i inventory/hosts.yml site.yml --tags xmrig  # single role
+#   ansible-playbook -i inventory/hosts.yml site.yml --check --diff # dry run
+
+- name: Monero Farm — Base Setup
+  hosts: all
+  become: true
+  roles:
+    - role: base
+      tags: [base]
+
+- name: Monero Farm — monerod Full Node
+  hosts: fullnode
+  become: true
+  roles:
+    - role: monero
+      tags: [monero, monerod]
+
+- name: Monero Farm — P2Pool
+  hosts: fullnode
+  become: true
+  roles:
+    - role: p2pool
+      tags: [p2pool]
+
+- name: Monero Farm — Monitoring Stack
+  hosts: fullnode
+  become: true
+  roles:
+    - role: monitoring
+      tags: [monitoring, prometheus, grafana]
+
+- name: Monero Farm — XMRig Miners
+  hosts: miners
+  become: true
+  roles:
+    - role: xmrig
+      tags: [xmrig]

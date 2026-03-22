@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Ansible
+*.retry
+# Inventory contains wallet address + host IPs — use hosts.yml.example
+ansible/inventory/hosts.yml
+
+# Secrets — never commit wallet keys, credentials, or env files
+*.keys
+.env
+.env.*
+
+# Backups
+*.bak
+backups/
+
+# OS
+.DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Logs
+*.log
+
+# Migration — extracted kernel/initrd are large binaries
+scripts/migrate/vmlinuz
+scripts/migrate/initrd
+
+# Kin semantic VCS
+.kin/

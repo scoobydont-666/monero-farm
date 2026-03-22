@@ -1,0 +1,37 @@
+---
+# Monero Farm Fleet Inventory
+# Copy this file to hosts.yml and fill in your values.
+#
+# Groups:
+#   fullnode — runs monerod + p2pool (typically 1 host)
+#   miners   — runs xmrig (can be many hosts)
+#   all      — base role applied everywhere
+
+all:
+  children:
+    fullnode:
+      hosts:
+        myhost:
+          ansible_host: 192.168.x.x
+          ansible_user: youruser
+          monero_data_dir: /var/lib/monero
+          # p2pool_instances uses defaults (main + mini)
+          # Override here to add nano or change ports
+    miners:
+      hosts:
+        myhost:
+          ansible_host: 192.168.x.x
+          ansible_user: youruser
+          xmrig_threads: auto  # or specific count
+          xmrig_api_port: 8082
+        # Add more miners here:
+        # miner-02:
+        #   ansible_host: 192.168.x.x
+        #   ansible_user: youruser
+        #   xmrig_threads: auto
+        #   xmrig_api_port: 8082
+  vars:
+    p2pool_stratum_host: 192.168.x.x
+    p2pool_stratum_port: 3333
+    monero_wallet_address: "YOUR_PRIMARY_MONERO_ADDRESS_HERE"
+    xmrig_http_port: 8082  # NOT 8080

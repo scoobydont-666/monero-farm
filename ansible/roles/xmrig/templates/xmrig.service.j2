@@ -1,0 +1,29 @@
+[Unit]
+Description=XMRig Monero Miner
+After=network-online.target
+
+[Service]
+User=miner
+Group=miner
+Type=simple
+ExecStart={{ xmrig_bin }} --config /etc/xmrig/config.json
+Restart=on-failure
+RestartSec=10
+
+# Allow hugepages access
+LimitMEMLOCK=infinity
+AmbientCapabilities=CAP_SYS_RESOURCE
+ProtectSystem=strict
+ReadWritePaths=/etc/xmrig
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=CAP_SYS_RESOURCE
+
+[Install]
+WantedBy=multi-user.target

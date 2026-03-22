@@ -1,0 +1,27 @@
+[Unit]
+Description=Monero Full Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=monero
+Group=monero
+Type=simple
+ExecStart=/usr/local/bin/monerod --non-interactive --config-file /etc/monero/monerod.conf
+Restart=always
+RestartSec=5
+TimeoutStopSec=120
+ProtectSystem=strict
+ReadWritePaths=/var/lib/monero
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

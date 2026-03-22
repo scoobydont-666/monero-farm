@@ -1,0 +1,17 @@
+---
+monero_data_dir: /var/lib/monero
+monero_log_level: 0
+monero_rpc_bind_ip: 127.0.0.1
+monero_rpc_port: 18081
+monero_p2p_port: 18080
+monero_zmq_port: 18083
+monero_prune_blockchain: false  # Already pruned; re-enabling triggers slow re-verify on restart
+monero_db_sync_mode: safe:sync
+monero_out_peers: 32
+monero_in_peers: 48
+
+# Binary installation
+monero_version: "0.18.4.6"
+monero_sha256: "60cfc32d39c6fe6c19b23513d02017fe9055d2e412ee4cbc30fa40ba811fe052"
+monero_install_dir: /opt/monero
+monero_download_url: "https://downloads.getmonero.org/cli/monero-linux-x64-v{{ monero_version }}.tar.bz2"

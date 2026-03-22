@@ -1,0 +1,17 @@
+[Unit]
+Description=XMRig Monero Miner
+After=network-online.target p2pool.service
+
+[Service]
+User=miner
+Group=miner
+Type=simple
+ExecStart=/usr/local/bin/xmrig --config /etc/xmrig/config.json
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target

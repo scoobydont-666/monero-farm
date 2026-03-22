@@ -1,0 +1,45 @@
+[Unit]
+Description=P2Pool {{ item.mode | capitalize }} Sidechain
+After=network-online.target monerod.service
+Wants=monerod.service
+
+[Service]
+User=p2pool
+Group=p2pool
+Type=simple
+ExecStart={{ p2pool_bin }} \
+  --wallet {{ monero_wallet_address }} \
+  --host 127.0.0.1 \
+  --rpc-port {{ monero_rpc_port }} \
+  --zmq-port {{ monero_zmq_port }} \
+  --stratum {{ p2pool_stratum_bind }}:{{ item.stratum_port }} \
+  --p2p 0.0.0.0:{{ item.p2p_port }} \
+  --data-api {{ p2pool_api_base }}/api-{{ item.mode }} \
+  --stratum-api \
+  --local-api 127.0.0.1:{{ item.local_api_port }} \
+  --loglevel {{ p2pool_loglevel }} \
+{% if item.mode == 'mini' %}
+  --no-upnp --mini
+{% elif item.mode == 'nano' %}
+  --no-upnp --nano
+{% else %}
+  --no-upnp
+{% endif %}
+
+Restart=always
+RestartSec=5
+LimitNOFILE=65535
+ProtectSystem=strict
+ReadWritePaths=/var/lib/p2pool /opt/p2pool
+PrivateTmp=true
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,159 @@
+---
+# Monitoring role — exporters, Prometheus, Grafana
+# Deploys the full observability stack from the mega-monero-p2pool.sh script
+
+# --- Python dependencies (apt packages, PEP 668 compliant) ---
+- name: Install monitoring Python dependencies
+  ansible.builtin.apt:
+    name:
+      - python3-prometheus-client
+      - python3-requests
+    state: present
+
+# --- Unified Exporter (monerod + p2pool combined, replaces standalone monerod-exporter) ---
+- name: Create unified exporter directory
+  ansible.builtin.file:
+    path: "{{ unified_exporter_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy unified exporter script
+  ansible.builtin.copy:
+    src: unified_exporter.py
+    dest: "{{ unified_exporter_dir }}/p2pool_exporter.py"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: restart unified-exporter
+
+- name: Deploy unified exporter systemd unit
+  ansible.builtin.template:
+    src: unified-exporter.service.j2
+    dest: /etc/systemd/system/p2pool-exporter.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart unified-exporter
+
+- name: Enable and start unified exporter
+  ansible.builtin.systemd:
+    name: p2pool-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+
+# --- P2Pool Observer Exporter (scrapes p2pool.observer for miner stats) ---
+- name: Create observer exporter directory
+  ansible.builtin.file:
+    path: "{{ observer_exporter_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy observer exporter script
+  ansible.builtin.copy:
+    src: p2pool_observer_exporter.py
+    dest: "{{ observer_exporter_dir }}/p2pool_observer_exporter.py"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: restart observer-exporter
+
+- name: Deploy observer exporter systemd unit
+  ansible.builtin.template:
+    src: observer-exporter.service.j2
+    dest: /etc/systemd/system/p2pool-observer-exporter.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart observer-exporter
+
+- name: Enable and start observer exporter
+  ansible.builtin.systemd:
+    name: p2pool-observer-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+
+# --- Prometheus ---
+- name: Ensure prometheus is installed
+  ansible.builtin.apt:
+    name:
+      - prometheus
+      - prometheus-node-exporter
+    state: present
+
+- name: Deploy Prometheus config
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Deploy Prometheus alert rules
+  ansible.builtin.template:
+    src: monerod_p2pool_alerts.yml.j2
+    dest: /etc/prometheus/monerod_p2pool_alerts.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Enable and start Prometheus
+  ansible.builtin.systemd:
+    name: prometheus
+    state: started
+    enabled: true
+
+# --- Grafana ---
+- name: Ensure grafana is installed
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+  ignore_errors: true  # Grafana repo GPG key may be stale; package is already installed
+
+- name: Create Grafana dashboard directory
+  ansible.builtin.file:
+    path: "{{ grafana_dashboard_dir }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+
+- name: Deploy Grafana Prometheus datasource
+  ansible.builtin.template:
+    src: grafana-datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  notify: restart grafana
+
+- name: Deploy Grafana dashboard provider
+  ansible.builtin.template:
+    src: grafana-dashboard-provider.yml.j2
+    dest: /etc/grafana/provisioning/dashboards/monero_p2pool.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  notify: restart grafana
+
+- name: Deploy Monero P2Pool dashboard
+  ansible.builtin.copy:
+    src: monero_p2pool_dashboard.json
+    dest: "{{ grafana_dashboard_dir }}/monero_p2pool.json"
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  notify: restart grafana
+
+- name: Enable and start Grafana
+  ansible.builtin.systemd:
+    name: grafana-server
+    state: started
+    enabled: true

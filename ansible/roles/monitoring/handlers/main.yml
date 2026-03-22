@@ -1,0 +1,29 @@
+---
+- name: restart prometheus
+  ansible.builtin.systemd:
+    name: prometheus
+    state: restarted
+
+- name: restart grafana
+  ansible.builtin.systemd:
+    name: grafana-server
+    state: restarted
+
+- name: restart monerod-exporter
+  ansible.builtin.systemd:
+    name: monerod-exporter
+    state: restarted
+
+- name: restart unified-exporter
+  ansible.builtin.systemd:
+    name: p2pool-exporter
+    state: restarted
+
+- name: restart observer-exporter
+  ansible.builtin.systemd:
+    name: p2pool-observer-exporter
+    state: restarted
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true

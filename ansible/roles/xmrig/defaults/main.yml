@@ -1,0 +1,13 @@
+---
+xmrig_threads: auto      # "auto" or integer
+xmrig_http_port: 8082    # NOT 8080 (Critical Rule #10)
+xmrig_http_bind: 127.0.0.1
+p2pool_stratum_host: 127.0.0.1
+p2pool_stratum_port: 3333
+
+# Binary installation
+xmrig_version: "6.25.0"
+xmrig_sha256: "4732cee4ffad920392fa35e432b77294f2cdf69fbb73491a7dff8b649336f888"
+xmrig_install_dir: /opt/xmrig
+xmrig_bin: /opt/xmrig/xmrig
+xmrig_download_url: "https://github.com/xmrig/xmrig/releases/download/v{{ xmrig_version }}/xmrig-{{ xmrig_version }}-linux-static-x64.tar.gz"
