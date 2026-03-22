@@ -29,9 +29,11 @@ else
     fail "systemd: not running"
 fi
 
-MONEROD_INFO=$(curl -s --max-time 5 http://127.0.0.1:18081/json_rpc \
-    -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' 2>/dev/null || echo "")
-if [[ -n "$MONEROD_INFO" ]]; then
+MONEROD_RESPONSE=$(curl -s --max-time 5 -w '\n%{http_code}' http://127.0.0.1:18081/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' 2>/dev/null)
+MONEROD_HTTP_CODE=$(echo "$MONEROD_RESPONSE" | tail -1)
+MONEROD_INFO=$(echo "$MONEROD_RESPONSE" | sed '$d')
+if [[ "$MONEROD_HTTP_CODE" == "200" && -n "$MONEROD_INFO" ]]; then
     SYNCED=$(echo "$MONEROD_INFO" | jq -r '.result.synchronized // false' 2>/dev/null || echo "false")
     HEIGHT=$(echo "$MONEROD_INFO" | jq -r '.result.height // "?"' 2>/dev/null || echo "?")
     TARGET=$(echo "$MONEROD_INFO" | jq -r '.result.target_height // "?"' 2>/dev/null || echo "?")
