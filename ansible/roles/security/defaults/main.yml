@@ -1,0 +1,24 @@
+---
+# CrowdSec
+crowdsec_lapi_port: 8088
+crowdsec_collections:
+  - crowdsecurity/sshd
+  - crowdsecurity/linux
+crowdsec_whitelist_cidrs: ["{{ lan_subnet }}"]
+
+# fail2ban
+fail2ban_maxretry: 3
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+
+# auditd
+auditd_watch_paths:
+  - { path: /etc/sudoers, key: sudoers_changes }
+  - { path: /etc/sudoers.d/, key: sudoers_changes }
+  - { path: /etc/ssh/sshd_config, key: ssh_config }
+
+# sysctl
+sysctl_hardening:
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv6.conf.all.accept_redirects: 0

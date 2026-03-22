@@ -1,0 +1,17 @@
+---
+- name: restart crowdsec
+  ansible.builtin.systemd:
+    name: crowdsec
+    state: restarted
+
+- name: restart fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: restarted
+
+- name: restart auditd
+  ansible.builtin.command: service auditd restart
+  # auditd refuses systemctl restart; use service command
+
+- name: reload sysctl
+  ansible.builtin.command: sysctl --system

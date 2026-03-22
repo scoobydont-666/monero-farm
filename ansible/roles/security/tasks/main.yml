@@ -1,0 +1,121 @@
+---
+# Security role — CrowdSec + fail2ban + auditd + sysctl hardening
+
+# --- CrowdSec ---
+
+- name: Add CrowdSec APT key
+  ansible.builtin.apt_key:
+    url: https://packagecloud.io/crowdsec/crowdsec/gpgkey
+    state: present
+
+- name: Add CrowdSec APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://packagecloud.io/crowdsec/crowdsec/any/ any main"
+    state: present
+    filename: crowdsec
+
+- name: Install CrowdSec and firewall bouncer
+  ansible.builtin.apt:
+    name:
+      - crowdsec
+      - crowdsec-firewall-bouncer-iptables
+    state: present
+    update_cache: true
+
+- name: Configure CrowdSec LAPI port
+  ansible.builtin.lineinfile:
+    path: /etc/crowdsec/config.yaml
+    regexp: '^\s*listen_uri:'
+    line: "  listen_uri: 127.0.0.1:{{ crowdsec_lapi_port }}"
+  notify: restart crowdsec
+
+- name: Install CrowdSec collections
+  ansible.builtin.command: cscli collections install {{ item }}
+  loop: "{{ crowdsec_collections }}"
+  register: cscli_install
+  changed_when: "'overwrite' not in cscli_install.stderr"
+  notify: restart crowdsec
+
+- name: Whitelist LAN CIDRs in CrowdSec
+  ansible.builtin.blockinfile:
+    path: /etc/crowdsec/parsers/s02-enrich/whitelist-lan.yaml
+    create: true
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED — LAN whitelist"
+    block: |
+      name: whitelist/lan
+      description: "Whitelist LAN subnets"
+      whitelist:
+        reason: "LAN traffic"
+        cidr:
+      {% for cidr in crowdsec_whitelist_cidrs %}
+          - "{{ cidr }}"
+      {% endfor %}
+  notify: restart crowdsec
+
+- name: Enable CrowdSec
+  ansible.builtin.systemd:
+    name: crowdsec
+    state: started
+    enabled: true
+
+- name: Enable CrowdSec firewall bouncer
+  ansible.builtin.systemd:
+    name: crowdsec-firewall-bouncer
+    state: started
+    enabled: true
+
+# --- fail2ban ---
+
+- name: Install fail2ban
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+
+- name: Deploy fail2ban jail.local
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+
+- name: Enable fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: true
+
+# --- auditd ---
+
+- name: Install auditd
+  ansible.builtin.apt:
+    name: auditd
+    state: present
+
+- name: Deploy auditd hardening rules
+  ansible.builtin.template:
+    src: hardening.rules.j2
+    dest: /etc/audit/rules.d/99-hardening.rules
+    owner: root
+    group: root
+    mode: "0640"
+  notify: restart auditd
+
+- name: Enable auditd
+  ansible.builtin.systemd:
+    name: auditd
+    state: started
+    enabled: true
+
+# --- sysctl hardening ---
+
+- name: Deploy sysctl hardening config
+  ansible.builtin.template:
+    src: 99-hardening.conf.j2
+    dest: /etc/sysctl.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload sysctl

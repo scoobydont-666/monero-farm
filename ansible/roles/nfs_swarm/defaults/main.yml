@@ -1,0 +1,8 @@
+---
+swarm_nfs_role: client  # primary, replica, or client
+swarm_nfs_primary: 192.168.200.163
+swarm_nfs_replica: 192.168.200.213
+swarm_mount_point: /opt/swarm
+swarm_replica_path: /opt/swarm-replica
+swarm_replica_sync_interval: "* * * * *"  # every minute
+lan_subnet: "192.168.200.0/23"

@@ -39,3 +39,24 @@
   roles:
     - role: xmrig
       tags: [xmrig]
+
+- name: Fleet Hardening — Security
+  hosts: all
+  become: true
+  roles:
+    - role: security
+      tags: [security, crowdsec, fail2ban, auditd]
+
+- name: Fleet Hardening — Sudoers
+  hosts: all
+  become: true
+  roles:
+    - role: sudoers
+      tags: [sudoers]
+
+- name: Fleet Hardening — NFS Swarm
+  hosts: all
+  become: true
+  roles:
+    - role: nfs_swarm
+      tags: [nfs, swarm]

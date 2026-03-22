@@ -1,0 +1,156 @@
+---
+# NFS Swarm role — primary, replica, or client
+
+# --- Primary: export /opt/swarm via NFS ---
+
+- name: "Primary — install NFS server"
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+    state: present
+  when: swarm_nfs_role == "primary"
+
+- name: "Primary — create swarm directory"
+  ansible.builtin.file:
+    path: "{{ swarm_mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: swarm_nfs_role == "primary"
+
+- name: "Primary — create swarm subdirectories"
+  ansible.builtin.file:
+    path: "{{ swarm_mount_point }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - configs
+    - state
+    - logs
+  when: swarm_nfs_role == "primary"
+
+- name: "Primary — configure NFS export"
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: "^{{ swarm_mount_point }}\\s"
+    line: "{{ swarm_mount_point }} {{ lan_subnet }}(rw,sync,no_subtree_check,no_root_squash)"
+    create: true
+    mode: "0644"
+  when: swarm_nfs_role == "primary"
+  notify: reload nfs exports
+
+- name: "Primary — enable NFS server"
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: true
+  when: swarm_nfs_role == "primary"
+
+# --- Replica: mount primary + rsync + re-export ---
+
+- name: "Replica — install NFS packages"
+  ansible.builtin.apt:
+    name:
+      - nfs-common
+      - nfs-kernel-server
+      - rsync
+    state: present
+  when: swarm_nfs_role == "replica"
+
+- name: "Replica — create mount point"
+  ansible.builtin.file:
+    path: "{{ swarm_mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: swarm_nfs_role == "replica"
+
+- name: "Replica — mount primary NFS"
+  ansible.posix.mount:
+    src: "{{ swarm_nfs_primary }}:{{ swarm_mount_point }}"
+    path: "{{ swarm_mount_point }}"
+    fstype: nfs
+    opts: "rw,soft,timeo=30,retrans=3"
+    state: mounted
+  when: swarm_nfs_role == "replica"
+
+- name: "Replica — create replica directory"
+  ansible.builtin.file:
+    path: "{{ swarm_replica_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: swarm_nfs_role == "replica"
+
+- name: "Replica — set up rsync cron"
+  ansible.builtin.cron:
+    name: "swarm-replica-sync"
+    minute: "{{ swarm_replica_sync_interval.split()[0] }}"
+    hour: "{{ swarm_replica_sync_interval.split()[1] }}"
+    day: "{{ swarm_replica_sync_interval.split()[2] }}"
+    month: "{{ swarm_replica_sync_interval.split()[3] }}"
+    weekday: "{{ swarm_replica_sync_interval.split()[4] }}"
+    job: "rsync -a --delete {{ swarm_mount_point }}/ {{ swarm_replica_path }}/ 2>/dev/null || true"
+    user: root
+  when: swarm_nfs_role == "replica"
+
+- name: "Replica — configure NFS export for replica path"
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: "^{{ swarm_replica_path }}\\s"
+    line: "{{ swarm_replica_path }} {{ lan_subnet }}(ro,sync,no_subtree_check,no_root_squash)"
+    create: true
+    mode: "0644"
+  when: swarm_nfs_role == "replica"
+  notify: reload nfs exports
+
+- name: "Replica — enable NFS server"
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: true
+  when: swarm_nfs_role == "replica"
+
+# --- Client: mount with primary/replica fallback ---
+
+- name: "Client — install nfs-common"
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+  when: swarm_nfs_role == "client"
+
+- name: "Client — create mount point"
+  ansible.builtin.file:
+    path: "{{ swarm_mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: swarm_nfs_role == "client"
+
+- name: "Client — mount primary NFS"
+  ansible.posix.mount:
+    src: "{{ swarm_nfs_primary }}:{{ swarm_mount_point }}"
+    path: "{{ swarm_mount_point }}"
+    fstype: nfs
+    opts: "rw,soft,timeo=15,retrans=2"
+    state: mounted
+  register: primary_mount
+  failed_when: false
+  when: swarm_nfs_role == "client"
+
+- name: "Client — fallback to replica NFS"
+  ansible.posix.mount:
+    src: "{{ swarm_nfs_replica }}:{{ swarm_replica_path }}"
+    path: "{{ swarm_mount_point }}"
+    fstype: nfs
+    opts: "ro,soft,timeo=15,retrans=2"
+    state: mounted
+  when:
+    - swarm_nfs_role == "client"
+    - primary_mount is defined
+    - primary_mount is failed

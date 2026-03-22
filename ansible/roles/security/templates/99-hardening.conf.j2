@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+# Kernel hardening parameters
+
+{% for key, value in sysctl_hardening.items() %}
+{{ key }} = {{ value }}
+{% endfor %}

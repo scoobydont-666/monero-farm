@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+# {{ sudoers_user }} — scoped NOPASSWD
+{% for cmd in sudoers_nopasswd_commands + sudoers_extra_commands %}
+{{ sudoers_user }} ALL=(ALL) NOPASSWD: {{ cmd }}
+{% endfor %}

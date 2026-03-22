@@ -1,0 +1,18 @@
+---
+# Sudoers role — scoped NOPASSWD via drop-in file
+
+- name: Deploy scoped sudoers file
+  ansible.builtin.template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/99-{{ sudoers_user }}-nopasswd"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "visudo -cf %s"
+
+- name: Remove blanket NOPASSWD from /etc/sudoers
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    regexp: '^\s*{{ sudoers_user }}\s+ALL=\(ALL\)\s+NOPASSWD:\s+ALL'
+    state: absent
+    validate: "visudo -cf %s"
