@@ -42,6 +42,17 @@
   when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
 
 # --- Directories ---
+- name: Create P2Pool home data directories (peer list cache)
+  ansible.builtin.file:
+    path: "/home/p2pool/.p2pool/{{ item }}"
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+  loop:
+    - ""
+    - mini
+
 - name: Create P2Pool data directory
   ansible.builtin.file:
     path: "{{ p2pool_data_dir }}"
