@@ -111,10 +111,9 @@ ansible-playbook -i inventory/hosts.yml site.yml --tags monitoring --connection=
 6. **Systemd only**: All services via systemd — NOT Docker Swarm (CPU affinity for RandomX, no cgroup interference)
 7. **All services run as root** — the planned monero/miner user migration has not been done
 8. **Blockchain data**: `/var/lib/monero` — needs ~200 GB NVMe headroom (pruned node, currently 253 GB)
-9. **Script conventions**: `#!/usr/bin/env bash`, `set -euo pipefail` (matches AI Server conventions)
-10. **XMRig HTTP API port**: 8082, NOT default 8080 (collision avoidance with OpenWebUI on gateway)
-11. **Idempotent always**: Never break running services. Verify against script, live system, and docs before changes.
-12. **LAN subnet**: Set `lan_subnet` in `roles/base/defaults/main.yml` — UFW rules restrict stratum + Grafana to LAN only
+9. **XMRig HTTP API port**: 8082, NOT default 8080 (collision avoidance with OpenWebUI on gateway)
+10. **Idempotent always**: Never break running services. Verify against script, live system, and docs before changes.
+11. **LAN subnet**: Set `lan_subnet` in `roles/base/defaults/main.yml` — UFW rules restrict stratum + Grafana to LAN only
 
 ## Monitoring Stack
 
