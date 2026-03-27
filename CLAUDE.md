@@ -7,7 +7,7 @@
 XMR mining farm management — monerod full node + P2Pool decentralized mining + XMRig fleet management. All services managed via systemd (NOT Docker Swarm). This is Hydra Head #2.
 
 ## Parent Project
-Part of Project Hydra (/opt/hydra-project/)
+Part of a multi-project AI platform umbrella.
 
 ## Origin
 Bootstrapped by `/mnt/data/mega-monero-p2pool.sh` — a single-shot installer that set up the full stack on miniboss. The Ansible roles in this project are the "v2" that codifies and extends that script for fleet management.
@@ -156,7 +156,5 @@ Monero Farm is the most independent head — it shares almost nothing with the A
 
 ## Related Projects
 
-- **Hydra Master**: /opt/hydra-project/ — Overall platform umbrella
-- **AI Server**: /opt/ai-project/ — Shared infrastructure (Monero Farm is mostly independent)
-- **Christi**: /opt/christi-project/ — Head #1 (AI tax advisor)
-- **Installer Script**: /mnt/data/mega-monero-p2pool.sh — Original bootstrap script (gold image)
+- Part of a multi-project platform with shared infrastructure
+- **Installer Script**: Original bootstrap script (gold image)
