@@ -4,6 +4,7 @@ xmrig_http_port: 8082    # NOT 8080 (Critical Rule #10)
 xmrig_http_bind: 127.0.0.1
 p2pool_stratum_host: 127.0.0.1
 p2pool_stratum_port: 3333
+xmrig_autostart: true    # false for cluster nodes (hydra-profile manages lifecycle)
 
 # Binary installation
 xmrig_version: "6.25.0"

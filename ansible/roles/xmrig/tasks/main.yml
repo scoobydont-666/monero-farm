@@ -1,6 +1,25 @@
 ---
 # XMRig miner role — install binary + configure + systemd
 
+# --- Prerequisites ---
+- name: Create miner system user
+  ansible.builtin.user:
+    name: miner
+    system: true
+    shell: /usr/sbin/nologin
+
+- name: Set hugepages for RandomX (persistent)
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.d/99-hugepages.conf
+    line: "vm.nr_hugepages={{ hugepages_count | default(1280) }}"
+    regexp: "^vm\\.nr_hugepages"
+    create: true
+    mode: "0644"
+
+- name: Apply hugepages immediately
+  ansible.builtin.command: sysctl -w vm.nr_hugepages={{ hugepages_count | default(1280) }}
+  changed_when: false
+
 # --- Binary installation ---
 - name: Check current xmrig version
   ansible.builtin.command: "{{ xmrig_bin }} --version"
@@ -55,7 +74,7 @@
     path: /etc/xmrig
     state: directory
     owner: root
-    group: root
+    group: miner
     mode: "0750"
 
 - name: Deploy XMRig config
@@ -63,7 +82,7 @@
     src: config.json.j2
     dest: /etc/xmrig/config.json
     owner: root
-    group: root
+    group: miner
     mode: "0640"
   notify: restart xmrig
 
@@ -80,6 +99,6 @@
 - name: Enable and start xmrig
   ansible.builtin.systemd:
     name: xmrig
-    state: started
-    enabled: true
+    state: "{{ 'started' if xmrig_autostart | default(true) else 'stopped' }}"
+    enabled: "{{ xmrig_autostart | default(true) }}"
     daemon_reload: true

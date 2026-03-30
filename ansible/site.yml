@@ -34,7 +34,7 @@
       tags: [monitoring, prometheus, grafana]
 
 - name: Monero Farm — XMRig Miners
-  hosts: miners
+  hosts: miners:cluster_miners
   become: true
   roles:
     - role: xmrig
