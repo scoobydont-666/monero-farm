@@ -35,3 +35,4 @@ scripts/migrate/initrd
 
 # Kin semantic VCS
 .kin/
+.mcp.json
