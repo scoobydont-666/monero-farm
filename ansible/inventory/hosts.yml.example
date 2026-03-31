@@ -5,6 +5,7 @@
 # Groups:
 #   fullnode — runs monerod + p2pool (typically 1 host)
 #   miners   — runs xmrig (can be many hosts)
+#   cluster_miners — GPU nodes where xmrig is installed but NOT auto-started
 #   all      — base role applied everywhere
 
 all:
@@ -25,11 +26,20 @@ all:
           xmrig_threads: auto  # or specific count
           xmrig_api_port: 8082
         # Add more miners here:
-        # miner-02:
+        # cpu-workhorse:
         #   ansible_host: 192.168.x.x
         #   ansible_user: youruser
         #   xmrig_threads: auto
         #   xmrig_api_port: 8082
+        #   hugepages_count: 2560  # scale with thread count
+    # GPU cluster nodes — XMRig installed but NOT auto-started (profile manager controls lifecycle)
+    cluster_miners:
+      hosts: {}
+        # gpu-node:
+        #   ansible_host: 192.168.x.x
+        #   ansible_user: youruser
+        #   xmrig_threads: auto
+        #   xmrig_autostart: false
   vars:
     p2pool_stratum_host: 192.168.x.x
     p2pool_stratum_port: 3333

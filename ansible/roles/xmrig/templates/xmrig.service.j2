@@ -10,20 +10,21 @@ ExecStart={{ xmrig_bin }} --config /etc/xmrig/config.json
 Restart=on-failure
 RestartSec=10
 
-# Allow hugepages access
+# Allow hugepages + MSR access (RandomX performance)
 LimitMEMLOCK=infinity
-AmbientCapabilities=CAP_SYS_RESOURCE
+AmbientCapabilities=CAP_SYS_RESOURCE CAP_SYS_RAWIO
 ProtectSystem=strict
 ReadWritePaths=/etc/xmrig
 PrivateTmp=true
-NoNewPrivileges=true
-PrivateDevices=true
-ProtectKernelModules=true
+NoNewPrivileges=false
+PrivateDevices=false
+DevicePolicy=auto
+ProtectKernelModules=false
 ProtectKernelLogs=true
 RestrictRealtime=true
 LockPersonality=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-CapabilityBoundingSet=CAP_SYS_RESOURCE
+CapabilityBoundingSet=CAP_SYS_RESOURCE CAP_SYS_RAWIO
 
 [Install]
 WantedBy=multi-user.target
