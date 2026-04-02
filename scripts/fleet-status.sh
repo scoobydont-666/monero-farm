@@ -7,8 +7,9 @@ set -euo pipefail
 
 # Fleet inventory — edit to match your hosts
 HOSTS=(
-    "miniboss:192.168.200.213:fullnode"
-    "rainbow:192.168.200.13:miner"
+    "miniboss:192.168.x.x:fullnode"
+    "rainbow:192.168.x.x:miner"
+    # ^^^ Replace with your actual LAN IPs
 )
 
 JSON=false
