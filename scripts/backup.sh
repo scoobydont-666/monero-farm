@@ -25,10 +25,23 @@ if [[ -d /var/lib/p2pool ]]; then
     tar czf "$BACKUP_DIR/p2pool-state.tar.gz" -C /var/lib p2pool/
 fi
 
-# Wallet files (if any exist)
+# Wallet files (if any exist) — encrypted with GPG
 if compgen -G "/home/*/Monero/wallets/*" >/dev/null 2>&1; then
-    echo "Backing up wallet files..."
-    find /home -path "*/Monero/wallets/*" -name "*.keys" -exec cp {} "$BACKUP_DIR/" \;
+    PASSPHRASE_FILE="/root/.wallet-backup-passphrase"
+    if [[ -f "$PASSPHRASE_FILE" ]]; then
+        echo "Backing up wallet files (encrypted)..."
+        WALLET_ARCHIVE="$BACKUP_DIR/wallet-keys.tar.gz.gpg"
+        find /home -path "*/Monero/wallets/*" -name "*.keys" -print0 | \
+            tar czf - --null -T - | \
+            gpg --batch --symmetric --cipher-algo AES256 \
+                --passphrase-file "$PASSPHRASE_FILE" \
+                -o "$WALLET_ARCHIVE"
+        echo "  Encrypted wallet keys: $WALLET_ARCHIVE"
+        echo "  Restore: gpg --batch --decrypt --passphrase-file $PASSPHRASE_FILE $WALLET_ARCHIVE | tar xzf -"
+    else
+        echo "WARNING: $PASSPHRASE_FILE not found — skipping wallet backup"
+        echo "  Create it: openssl rand -hex 32 | sudo tee $PASSPHRASE_FILE && sudo chmod 0400 $PASSPHRASE_FILE"
+    fi
 fi
 
 # Systemd unit snapshots
