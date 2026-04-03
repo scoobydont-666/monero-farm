@@ -1,0 +1,11 @@
+# Monero farm allowlist for documentation examples
+# These are example/test wallet addresses in docs, not live wallets
+[allowlist]
+regexes = [
+  "4[0-9A-Za-z]{94}",  # Monero mainnet address pattern (example)
+  "8[0-9A-Za-z]{94}",  # Monero stagenet address pattern (example)
+]
+paths = [
+  "docs/.*",
+  "README.*",
+]
