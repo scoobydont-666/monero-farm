@@ -8,51 +8,61 @@ Part of [Project Hydra](https://github.com/scoobydont-666) — Head #2.
 
 ## Architecture
 
+```mermaid
+graph TB
+    MoneroNet["Monero Network<br/>P2P :18080"]
+    monerod["monerod<br/>Pruned Full Node<br/>RPC :18081 / ZMQ :18083"]
+    
+    P2PoolMain["P2Pool Main<br/>Stratum :4444<br/>P2P :37889"]
+    P2PoolMini["P2Pool Mini<br/>Stratum :3333<br/>P2P :37888"]
+    P2PoolNano["P2Pool Nano<br/>Stratum :2222<br/>P2P :37890"]
+    
+    XMRig["XMRig Miner Fleet<br/>CPU Miners + Hugepages<br/>HTTP API :8082"]
+    
+    MonExporter["monerod-exporter :18090"]
+    P2PBuiltin["p2pool-builtin :18095"]
+    UnifiedExporter["unified-exporter :18096"]
+    NodeExporter["node-exporter :9100"]
+    
+    Prometheus["Prometheus :9090<br/>Metrics Aggregation"]
+    Grafana["Grafana :3000<br/>Observability Dashboard"]
+    
+    MoneroNet --> monerod
+    monerod -->|ZMQ| P2PoolMain
+    monerod -->|ZMQ| P2PoolMini
+    monerod -->|ZMQ| P2PoolNano
+    
+    P2PoolMain -->|Stratum| XMRig
+    P2PoolMini -->|Stratum| XMRig
+    P2PoolNano -->|Stratum| XMRig
+    
+    monerod --> MonExporter
+    P2PoolMain --> P2PBuiltin
+    P2PoolMini --> P2PBuiltin
+    P2PoolNano --> P2PBuiltin
+    XMRig --> UnifiedExporter
+    
+    MonExporter --> Prometheus
+    P2PBuiltin --> Prometheus
+    UnifiedExporter --> Prometheus
+    NodeExporter --> Prometheus
+    
+    Prometheus --> Grafana
 ```
-                       ┌─────────────────────┐
-                       │    Monero Network    │
-                       └──────────┬──────────┘
-                                  │ P2P :18080
-                       ┌──────────▼──────────┐
-                       │      monerod         │
-                       │  (pruned full node)  │
-                       │  RPC :18081 (local)  │
-                       │  ZMQ :18083 (local)  │
-                       └──────┬───────────────┘
-                              │ ZMQ block notifications
-             ┌────────────────┼────────────────┐
-             ▼                ▼                ▼
-     ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-     │  P2Pool main │ │  P2Pool mini │ │  P2Pool nano │
-     │  P2P :37889  │ │  P2P :37888  │ │  P2P :37890  │
-     │  Stratum:4444│ │  Stratum:3333│ │  Stratum:2222│
-     └──────┬───────┘ └──────┬───────┘ └──────┬───────┘
-            │                │                │
-            └────────────────┴────────────────┘
-                             │ stratum (LAN)
-                             ▼
-               ┌─────────────────────────────┐
-               │       XMRig Miner Fleet     │
-               │   CPU miners, hugepages     │
-               │   HTTP API :8082 (local)    │
-               └─────────────────────────────┘
-                             │
-             ┌───────────────┼───────────────┐
-             ▼               ▼               ▼
-    ┌────────────────┐ ┌──────────┐ ┌────────────────┐
-    │ monerod-exporter│ │ unified │ │ node-exporter  │
-    │ :18090          │ │ exporter│ │ :9100          │
-    │ p2pool-builtin  │ │ :18096  │ │ (system stats) │
-    │ :18095          │ │         │ └────────────────┘
-    └────────────────┘ └──────────┘
-             │               │
-             └───────────────┘
-                     │
-              ┌──────▼──────┐     ┌─────────────┐
-              │ Prometheus  │────▶│   Grafana   │
-              │ :9090       │     │   :3000     │
-              └─────────────┘     └─────────────┘
-```
+
+## Tech Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| **Full Node** | monerod | v0.18.4.6 |
+| **Mining Pool** | P2Pool | v4.14 |
+| **Miner** | XMRig | v6.25.0 |
+| **Metrics** | Prometheus | — |
+| **Visualization** | Grafana | — |
+| **Exporters** | node-exporter, monerod-exporter, p2pool-builtin, unified-exporter | — |
+| **IaC** | Ansible | 2.16+ |
+| **Service Management** | systemd | — |
+| **OS** | Ubuntu | 22.04+ / 24.04 |
 
 ## Prerequisites
 
