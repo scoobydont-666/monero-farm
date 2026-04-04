@@ -4,7 +4,7 @@
 /opt/monero-farm
 
 ## Purpose
-XMR mining farm management — monerod full node + P2Pool decentralized mining + XMRig fleet management. All services managed via systemd (NOT Docker Swarm). This is Hydra Head #2.
+XMR mining farm management — monerod full node + P2Pool decentralized mining + XMRig fleet management. All services managed via systemd (NOT K3s). This is Hydra Head #2.
 
 ## Parent Project
 Part of a multi-project AI platform umbrella.
@@ -108,7 +108,7 @@ ansible-playbook -i inventory/hosts.yml site.yml --tags monitoring --connection=
 3. **monerod RPC**: Always bind 127.0.0.1, never 0.0.0.0
 4. **Hugepages**: `vm.nr_hugepages` MUST be >= 1280 before XMRig starts (Ansible base role handles this)
 5. **Tax records**: Use `monero-wallet-rpc get_transfers` as source of truth; log FMV at receipt per IRS Notice 2014-21
-6. **Systemd only**: All services via systemd — NOT Docker Swarm (CPU affinity for RandomX, no cgroup interference)
+6. **Systemd only**: All services via systemd — NOT K3s (CPU affinity for RandomX, no cgroup interference)
 7. **All services run as root** — the planned monero/miner user migration has not been done
 8. **Blockchain data**: `/var/lib/monero` — needs ~200 GB NVMe headroom (pruned node, currently 253 GB)
 9. **XMRig HTTP API port**: 8082, NOT default 8080 (collision avoidance with OpenWebUI on gateway)
