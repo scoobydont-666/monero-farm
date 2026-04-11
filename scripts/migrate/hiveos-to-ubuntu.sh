@@ -377,7 +377,7 @@ echo ""
 echo "  Rebooting target into Ubuntu 24.04..."
 echo "  After ~60 seconds, connect with:"
 echo ""
-echo "    ssh josh@${TARGET_IP}"
+echo "    ssh \${SSH_USER}@${TARGET_IP}"
 echo "    sudo systemctl status xmrig"
 echo ""
 echo "  Expected hashrate: ~10.5 KH/s"
@@ -404,12 +404,12 @@ echo "Target is rebooting. Waiting 60 seconds..."
 sleep 60
 
 # Try to connect
-echo "Attempting SSH to josh@${TARGET_IP}..."
+echo "Attempting SSH to ${SSH_USER}@${TARGET_IP}..."
 for i in 1 2 3 4 5; do
-  if ssh -o BatchMode=yes -o ConnectTimeout=10 "josh@${TARGET_IP}" "hostname && systemctl is-active xmrig" 2>/dev/null; then
+  if ssh -o BatchMode=yes -o ConnectTimeout=10 "${SSH_USER}@${TARGET_IP}" "hostname && systemctl is-active xmrig" 2>/dev/null; then
     echo ""
     echo "SUCCESS! Rainbow is back on Ubuntu 24.04 with XMRig running."
-    ssh "josh@${TARGET_IP}" "xmrig --version && echo '---' && cat /etc/os-release | head -3"
+    ssh "${SSH_USER}@${TARGET_IP}" "xmrig --version && echo '---' && cat /etc/os-release | head -3"
     exit 0
   fi
   echo "  Attempt $i/5 — not ready yet, waiting 15 seconds..."
@@ -418,4 +418,4 @@ done
 
 echo ""
 echo "Target hasn't come back yet. It may still be booting."
-echo "Try manually: ssh josh@${TARGET_IP}"
+echo "Try manually: ssh \${SSH_USER}@${TARGET_IP}"

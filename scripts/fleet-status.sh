@@ -19,24 +19,24 @@ check_host() {
     local name="$1" ip="$2" role="$3"
     local status="offline" uptime="" cpu="" mem="" services="" hashrate="0"
 
-    if ssh -o ConnectTimeout=3 -o BatchMode=yes "josh@${ip}" "echo ok" &>/dev/null; then
+    if ssh -o ConnectTimeout=3 -o BatchMode=yes "${SSH_USER:-$(whoami)}@${ip}" "echo ok" &>/dev/null; then
         status="online"
-        uptime=$(ssh "josh@${ip}" "uptime -p" 2>/dev/null || echo "?")
-        cpu=$(ssh "josh@${ip}" "nproc" 2>/dev/null || echo "?")
-        mem=$(ssh "josh@${ip}" "free -h | awk '/^Mem:/{print \$3\"/\"\$2}'" 2>/dev/null || echo "?")
+        uptime=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "uptime -p" 2>/dev/null || echo "?")
+        cpu=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "nproc" 2>/dev/null || echo "?")
+        mem=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "free -h | awk '/^Mem:/{print \$3\"/\"\$2}'" 2>/dev/null || echo "?")
 
         if [[ "$role" == "fullnode" ]]; then
             # Check monerod + P2Pool
             local monerod_ok p2pool_ok
-            monerod_ok=$(ssh "josh@${ip}" "systemctl is-active monerod 2>/dev/null" || echo "inactive")
-            p2pool_ok=$(ssh "josh@${ip}" "systemctl is-active p2pool-mini 2>/dev/null" || echo "inactive")
+            monerod_ok=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "systemctl is-active monerod 2>/dev/null" || echo "inactive")
+            p2pool_ok=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "systemctl is-active p2pool-mini 2>/dev/null" || echo "inactive")
             services="monerod:${monerod_ok},p2pool:${p2pool_ok}"
         fi
 
         if [[ "$role" == "miner" || "$role" == "fullnode" ]]; then
             # Check XMRig hashrate
             local xmrig_data
-            xmrig_data=$(ssh "josh@${ip}" "curl -s --max-time 2 http://127.0.0.1:8082/2/summary 2>/dev/null" || echo "")
+            xmrig_data=$(ssh "${SSH_USER:-$(whoami)}@${ip}" "curl -s --max-time 2 http://127.0.0.1:8082/2/summary 2>/dev/null" || echo "")
             if [[ -n "$xmrig_data" ]]; then
                 hashrate=$(echo "$xmrig_data" | jq -r '.hashrate.total[0] // 0' 2>/dev/null || echo "0")
                 services="${services:+${services},}xmrig:active"
