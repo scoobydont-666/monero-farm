@@ -1,5 +1,11 @@
 # Monero Farm — Project Hydra Head #2
 
+## Status
+- `status: PRODUCTION-INTERNAL`
+- `last_verified: 2026-04-17`
+- `owner: josh`
+- `tier: infra`
+
 ## Current Status (2026-04-06)
 **P2Pool relay only. NO XMRig mining on any fleet host.** Decision: Josh has decided — no mining anywhere. Only P2Pool relay on miniboss stays running (main, mini, nano sidechains). monerod full node continues to support P2Pool as the backing blockchain source. All XMRig services disabled across giga, mecha, mega, mongo.
 
