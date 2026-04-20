@@ -1,54 +1,70 @@
 # Monero Farm
 
-XMR mining farm management — **monerod** full node + **P2Pool** decentralized mining (main/mini/nano) + **XMRig** CPU miner fleet, with full **Prometheus + Grafana** observability.
+> **MAINTENANCE MODE** — Active mining has been STOPPED since 2026-04-06. Only the P2Pool relay component remains operational on miniboss. No XMRig mining runs anywhere in the fleet.
+
+XMR infrastructure management — **monerod** full node + **P2Pool** decentralized relay (main/mini/nano sidechains) + **Prometheus + Grafana** observability.
 
 All services managed via **systemd** and provisioned with **Ansible**.
 
 Part of [Project Hydra](https://github.com/scoobydont-666) — Head #2.
 
+---
+
+## Current Operational State
+
+| Component | Status | Host |
+|-----------|--------|------|
+| monerod full node | Running | miniboss |
+| P2Pool relay (main + mini + nano) | Running | miniboss |
+| XMRig miner fleet | **DISABLED** | — |
+| Prometheus / Grafana | Running | miniboss |
+
+**Decision date**: 2026-04-06. The mining fleet (giga, mecha, mega, mongo) ran XMRig until that date, then all XMRig services were disabled. Only the P2Pool relay and backing monerod node remain operational so the relay continues participating in the sidechain.
+
+---
+
 ## Architecture
+
+Current active dataflow (P2Pool relay only):
 
 ```mermaid
 graph TB
     MoneroNet["Monero Network<br/>P2P :18080"]
     monerod["monerod<br/>Pruned Full Node<br/>RPC :18081 / ZMQ :18083"]
-    
+
     P2PoolMain["P2Pool Main<br/>Stratum :4444<br/>P2P :37889"]
     P2PoolMini["P2Pool Mini<br/>Stratum :3333<br/>P2P :37888"]
     P2PoolNano["P2Pool Nano<br/>Stratum :2222<br/>P2P :37890"]
-    
-    XMRig["XMRig Miner Fleet<br/>CPU Miners + Hugepages<br/>HTTP API :8082"]
-    
+
     MonExporter["monerod-exporter :18090"]
     P2PBuiltin["p2pool-builtin :18095"]
     UnifiedExporter["unified-exporter :18096"]
     NodeExporter["node-exporter :9100"]
-    
+
     Prometheus["Prometheus :9090<br/>Metrics Aggregation"]
     Grafana["Grafana :3000<br/>Observability Dashboard"]
-    
+
     MoneroNet --> monerod
     monerod -->|ZMQ| P2PoolMain
     monerod -->|ZMQ| P2PoolMini
     monerod -->|ZMQ| P2PoolNano
-    
-    P2PoolMain -->|Stratum| XMRig
-    P2PoolMini -->|Stratum| XMRig
-    P2PoolNano -->|Stratum| XMRig
-    
+
     monerod --> MonExporter
     P2PoolMain --> P2PBuiltin
     P2PoolMini --> P2PBuiltin
     P2PoolNano --> P2PBuiltin
-    XMRig --> UnifiedExporter
-    
+
     MonExporter --> Prometheus
     P2PBuiltin --> Prometheus
     UnifiedExporter --> Prometheus
     NodeExporter --> Prometheus
-    
+
     Prometheus --> Grafana
 ```
+
+XMRig is not shown — it is disabled and does not connect to any stratum endpoint.
+
+---
 
 ## Tech Stack
 
@@ -56,7 +72,7 @@ graph TB
 |-----------|-----------|---------|
 | **Full Node** | monerod | v0.18.4.6 |
 | **Mining Pool** | P2Pool | v4.14 |
-| **Miner** | XMRig | v6.25.0 |
+| **Miner** | XMRig | v6.25.0 (installed, **disabled**) |
 | **Metrics** | Prometheus | — |
 | **Visualization** | Grafana | — |
 | **Exporters** | node-exporter, monerod-exporter, p2pool-builtin, unified-exporter | — |
@@ -64,12 +80,16 @@ graph TB
 | **Service Management** | systemd | — |
 | **OS** | Ubuntu | 22.04+ / 24.04 |
 
+---
+
 ## Prerequisites
 
 - Ubuntu 22.04+ (tested on 24.04)
 - Ansible 2.16+
-- A primary Monero wallet address (Ledger hardware wallet recommended)
+- A primary Monero wallet address (Ledger hardware wallet recommended) — set in inventory, never committed to git
 - SSH access to all target hosts
+
+---
 
 ## Quick Start
 
@@ -96,15 +116,17 @@ ansible-playbook -i inventory/hosts.yml site.yml --connection=local
 ### Deploy a Single Role
 
 ```bash
-# XMRig only
-ansible-playbook -i inventory/hosts.yml site.yml --tags xmrig --connection=local
-
 # Monitoring stack only
 ansible-playbook -i inventory/hosts.yml site.yml --tags monitoring --connection=local
 
 # P2Pool only
 ansible-playbook -i inventory/hosts.yml site.yml --tags p2pool --connection=local
+
+# XMRig only (DISABLED — for reference; mining is stopped)
+ansible-playbook -i inventory/hosts.yml site.yml --tags xmrig --connection=local
 ```
+
+---
 
 ## Ansible Roles
 
@@ -113,10 +135,12 @@ ansible-playbook -i inventory/hosts.yml site.yml --tags p2pool --connection=loca
 | `base` | System users, hugepages (2.5 GB for RandomX), UFW firewall (LAN-only), NTP |
 | `monero` | monerod binary, config, systemd unit, pruned full node setup |
 | `p2pool` | P2Pool binary, multiple sidechain instances (main + mini; nano optional) |
-| `xmrig` | XMRig binary, config, systemd unit per miner host |
+| `xmrig` | XMRig binary, config, systemd unit per miner host — **DISABLED since 2026-04-06** |
 | `monitoring` | 4 Prometheus exporters, Prometheus config + 10 alert rules, Grafana with provisioned dashboard |
 
 Version pins are in `ansible/roles/*/defaults/main.yml`. Update and re-run the playbook to upgrade components.
+
+---
 
 ## Service Ports
 
@@ -131,13 +155,15 @@ Version pins are in `ansible/roles/*/defaults/main.yml`. Update and re-run the p
 | P2Pool main P2P | 37889 | public | Main sidechain peer discovery |
 | P2Pool mini P2P | 37888 | public | Mini sidechain peer discovery |
 | P2Pool nano P2P | 37890 | public | Nano sidechain peer discovery |
-| XMRig HTTP API | 8082 | loopback | Miner stats (avoids :8080 collision) |
+| XMRig HTTP API | 8082 | loopback | **DISABLED** — miner stats when active |
 | monerod-exporter | 18090 | loopback | 10 basic monerod gauges |
 | p2pool-builtin | 18095 | loopback | Native P2Pool metrics per sidechain |
 | unified-exporter | 18096 | loopback | 163 combined monerod + P2Pool metrics |
 | node-exporter | 9100 | LAN | System CPU, RAM, disk |
 | Prometheus | 9090 | loopback | Metrics aggregation |
 | Grafana | 3000 | LAN | Dashboard UI |
+
+---
 
 ## P2Pool Sidechain Selection
 
@@ -148,6 +174,8 @@ Version pins are in `ansible/roles/*/defaults/main.yml`. Update and re-run the p
 | main | > 10 KH/s | :4444 | :37889 |
 
 By default, **main + mini** are deployed. Nano is commented out in `ansible/roles/p2pool/defaults/main.yml` — uncomment to enable it.
+
+---
 
 ## Monitoring Stack
 
@@ -165,13 +193,23 @@ Five Prometheus scrape targets feed the unified Grafana dashboard:
 
 `MonerodDown`, `MonerodNotSyncing`, `MonerodZeroPeers`, `P2PoolExporterDown`, `P2PoolNoStratumConnections`, `P2PoolLowHashrate`, `P2PoolNoBlocksFoundRecently`, `HighCPULoad`, `LowDiskSpace`, `HighRAMUsage`
 
+---
+
+## XMRig — DISABLED (Historical Reference Only)
+
+XMRig fleet mining was deployed and operational across the fleet (giga, mecha, mega, mongo — peak ~10.5 KH/s on rainbow/Ryzen 5 9600X). All XMRig services were stopped on 2026-04-06 per operational decision. The Ansible role, config templates, and systemd units are preserved in this repo for historical reference and potential future reactivation.
+
+The `xmrig` role installs and configures XMRig but the systemd service is masked/disabled on all fleet hosts. Do not re-enable without explicit decision to resume mining.
+
+---
+
 ## Operational Scripts
 
 ```bash
 # Full service health audit
 ./scripts/health-check.sh
 
-# Live hashrate across all miners (refreshes every 10s)
+# Live hashrate across all miners (disabled — no active miners)
 ./scripts/hashrate-summary.sh --watch
 
 # Orchestrated restart (respects dependency order)
@@ -180,6 +218,8 @@ Five Prometheus scrape targets feed the unified Grafana dashboard:
 # Backup configs, wallet keys, P2Pool state
 ./scripts/backup.sh /path/to/backup/dir
 ```
+
+---
 
 ## Current Versions
 
@@ -190,6 +230,8 @@ Five Prometheus scrape targets feed the unified Grafana dashboard:
 | XMRig | v6.25.0 | `ansible/roles/xmrig/defaults/main.yml` |
 
 To upgrade: update the version variable in the relevant `defaults/main.yml` and re-run the playbook.
+
+---
 
 ## Security
 
@@ -202,9 +244,11 @@ To upgrade: update the version variable in the relevant `defaults/main.yml` and 
 - Grafana runs HTTPS with a self-signed cert generated on first deploy
 - monerod P2P and P2Pool P2P are open (required for peer discovery)
 
-## HiveOS Migration
+---
 
-For miners running HiveOS, `scripts/migrate/` provides an in-place migration tool:
+## HiveOS Migration (Historical Reference)
+
+For miners running HiveOS, `scripts/migrate/` provides an in-place migration tool. This was used during the original fleet setup and is preserved for reference.
 
 ```bash
 # Required environment variables
@@ -216,6 +260,8 @@ export FULLNODE_PUBKEY="ssh-ed25519 AAAA... user@host"
 ```
 
 Also includes a `user-data` cloud-init file for Ubuntu autoinstall. Edit the placeholders (`YOUR_SSH_PUBLIC_KEY_HERE`, `FULLNODE_IP`, LAN CIDR) before use.
+
+---
 
 ## Development
 
@@ -229,6 +275,8 @@ ansible-lint ansible/
 ansible-playbook -i inventory/hosts.yml site.yml --check --diff --limit <hostname>
 ```
 
+---
+
 ## Phase / Milestone Status
 
 | Phase | Description | Status |
@@ -239,15 +287,19 @@ ansible-playbook -i inventory/hosts.yml site.yml --check --diff --limit <hostnam
 | F4 | Unified exporter (163 combined metrics) | Complete |
 | F5 | Operational scripts: health-check, hashrate-summary, restart-all, backup | Complete |
 | F6 | HiveOS migration tooling | Complete |
-| F7 (future) | Multi-host inventory (beyond single fullnode) | Planned |
-| F8 (future) | Hashrate Hedger integration (dynamic thread tuning) | Planned |
+| F7 | Multi-host inventory (beyond single fullnode) | Deferred — mining stopped |
+| F8 | Hashrate Hedger integration (dynamic thread tuning) | Deferred — mining stopped |
+
+---
 
 ## Related Projects
 
 | Project | Relationship |
 |---------|-------------|
-| [Hashrate Hedger (Head #5)](https://github.com/scoobydont-666) | Reads fleet metrics, auto-adjusts XMRig config |
+| [Hashrate Hedger (Head #5)](https://github.com/scoobydont-666) | Reads fleet metrics, auto-adjusts XMRig config — deferred |
 | [Project Hydra](https://github.com/scoobydont-666) | Umbrella project |
+
+---
 
 ## License
 
