@@ -290,6 +290,17 @@ ansible-playbook -i inventory/hosts.yml site.yml --check --diff --limit <hostnam
 | F7 | Multi-host inventory (beyond single fullnode) | Deferred — mining stopped |
 | F8 | Hashrate Hedger integration (dynamic thread tuning) | Deferred — mining stopped |
 
+## Recent Updates (2026-04-24)
+
+### Status & Operations
+- **Marked MAINTENANCE MODE** (2026-04-06 decision finalized; no mining, P2Pool relay only)
+- Public repo sanitization: removed hardcoded IPs and SSH usernames
+- Added comprehensive Mermaid architecture diagram + tech stack table
+
+### Documentation
+- Clarified: "No XMRig mining anywhere" + P2Pool relay-only posture
+- Added SB-8 status block per 2026-04-17 audit requirement
+
 ---
 
 ## Related Projects
