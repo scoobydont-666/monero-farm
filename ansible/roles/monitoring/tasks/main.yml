@@ -10,6 +10,28 @@
       - python3-requests
     state: present
 
+# --- C1 — exporter env file (credentials off CLI) ---
+- name: Create /etc/monero-farm directory
+  ansible.builtin.file:
+    path: /etc/monero-farm
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Provision exporter env file (empty placeholder if absent)
+  ansible.builtin.copy:
+    dest: /etc/monero-farm/exporter.env
+    content: |
+      # Monero RPC credentials for unified-exporter
+      # Set these if monerod is started with --rpc-login user:pass
+      # MONERO_RPC_USERNAME=
+      # MONERO_RPC_PASSWORD=
+    owner: root
+    group: exporter
+    mode: "0640"
+    force: false  # never overwrite an existing secrets file
+
 # --- Unified Exporter (monerod + p2pool combined, replaces standalone monerod-exporter) ---
 - name: Create unified exporter directory
   ansible.builtin.file:

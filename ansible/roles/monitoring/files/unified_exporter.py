@@ -812,11 +812,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
+    # C1 — prefer env vars over CLI args so credentials never appear in
+    # /proc/<pid>/cmdline.  CLI args remain as fallback for manual invocation.
+    username = os.environ.get("MONERO_RPC_USERNAME") or args.monero_rpc_username
+    password = os.environ.get("MONERO_RPC_PASSWORD") or args.monero_rpc_password
+
     rpc = MoneroRPC(
         base_url=args.monero_rpc_url,
         timeout=5.0,
-        username=args.monero_rpc_username,
-        password=args.monero_rpc_password,
+        username=username,
+        password=password,
         digest_auth=not args.monero_rpc_no_digest,
     )
 
