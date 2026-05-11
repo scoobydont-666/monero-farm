@@ -67,6 +67,16 @@
     mode: "0640"
   notify: restart monerod
 
+# P2 fix: log dir must exist before the unit starts; ProtectSystem=strict prevents
+# monerod from creating it at runtime, and ReadWritePaths requires the path to exist.
+- name: Ensure monerod log directory exists
+  ansible.builtin.file:
+    path: /var/log/monero
+    state: directory
+    owner: monero
+    group: monero
+    mode: "0750"
+
 # --- Systemd ---
 - name: Deploy monerod systemd unit
   ansible.builtin.template:

@@ -7,12 +7,13 @@ Wants=network-online.target
 User=monero
 Group=monero
 Type=simple
-ExecStart=/usr/local/bin/monerod --non-interactive --config-file /etc/monero/monerod.conf
+ExecStart=/usr/local/bin/monerod --non-interactive --config-file /etc/monero/monerod.conf \
+    --log-file /var/log/monero/monerod.log
 Restart=always
 RestartSec=5
 TimeoutStopSec=120
 ProtectSystem=strict
-ReadWritePaths=/var/lib/monero
+ReadWritePaths=/var/lib/monero /var/log/monero
 PrivateTmp=true
 NoNewPrivileges=true
 PrivateDevices=true
