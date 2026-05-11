@@ -84,7 +84,18 @@
     name:
       - prometheus
       - prometheus-node-exporter
+      - prometheus-blackbox-exporter
     state: present
+
+# P1 fix: ensure blackbox-exporter is running before Prometheus config is deployed.
+# Without this, fresh deploys race — Prometheus reloads with a blackbox target that isn't
+# listening yet, causing scrape failures until the next reload cycle.
+- name: Enable and start prometheus-blackbox-exporter
+  ansible.builtin.systemd:
+    name: prometheus-blackbox-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
 
 - name: Deploy Prometheus config
   ansible.builtin.template:
@@ -157,3 +168,12 @@
     name: grafana-server
     state: started
     enabled: true
+
+# --- B4 — monerod log rotation (copytruncate; monerod ignores SIGHUP) ---
+- name: Deploy monerod logrotate config
+  ansible.builtin.template:
+    src: monerod-logrotate.j2
+    dest: /etc/logrotate.d/monerod
+    owner: root
+    group: root
+    mode: "0644"

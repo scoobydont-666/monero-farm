@@ -23,5 +23,8 @@ observer_exporter_dir: /opt/p2pool-observer-exporter
 prometheus_scrape_interval: 5s
 prometheus_evaluation_interval: 15s
 
+# Blackbox exporter (TCP probe for ZMQ heartbeat — B1)
+blackbox_exporter_port: 9115
+
 # Grafana
 grafana_dashboard_dir: /var/lib/grafana/dashboards

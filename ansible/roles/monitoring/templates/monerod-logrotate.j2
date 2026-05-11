@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+# B4 — monerod does not honor SIGHUP for log reopen; use copytruncate
+/var/log/monero/monerod.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
