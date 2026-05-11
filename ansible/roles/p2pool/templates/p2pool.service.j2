@@ -19,12 +19,13 @@ ExecStart={{ p2pool_bin }} \
   --local-api 127.0.0.1:{{ item.local_api_port }} \
   --loglevel {{ p2pool_loglevel }} \
 {% if item.mode == 'mini' %}
-  --no-upnp --mini
+  --no-upnp --mini \
 {% elif item.mode == 'nano' %}
-  --no-upnp --nano
+  --no-upnp --nano \
 {% else %}
-  --no-upnp
+  --no-upnp \
 {% endif %}
+  --no-randomx-init
 
 Restart=always
 RestartSec=5
