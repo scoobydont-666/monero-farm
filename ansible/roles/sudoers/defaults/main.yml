@@ -37,9 +37,13 @@ sudoers_nopasswd_commands:
   # Package management — Ansible needs this for role applies
   - /usr/bin/apt
   # Firewall — UFW status/allow/deny only
+  # sudoers(5): no trailing args = any args allowed (correct for status — takes none).
+  # allow/deny always need a rule argument (e.g. "3333/tcp"). Appending "" (empty-arg
+  # sentinel) tells sudo to permit any argument list; without it, sudo rejects
+  # "ufw allow 3333/tcp" because it only matches the exact two-word form.
   - /usr/sbin/ufw status
-  - /usr/sbin/ufw allow
-  - /usr/sbin/ufw deny
+  - /usr/sbin/ufw allow ""
+  - /usr/sbin/ufw deny ""
   # Security tools
   - /usr/sbin/augenrules
   - /usr/sbin/auditctl
