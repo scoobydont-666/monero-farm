@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1078,SC2140,SC2027
+# SC1078/SC2140: false positives from JSON heredocs nested inside SSH strings.
+# SC2027: ${LAN_SUBNET:-...} inside remote chroot heredoc — expands correctly.
 set -euo pipefail
 #
 # HiveOS → Ubuntu 24.04 In-Place Migration (debootstrap method)
@@ -27,7 +30,6 @@ set -euo pipefail
 
 TARGET_IP="${1:?Usage: $0 <target-ip> [ssh-user]}"
 SSH_USER="${2:-root}"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MINIBOSS_IP="${MINIBOSS_IP:?Set MINIBOSS_IP before running}"
 MINIBOSS_PUBKEY="${MINIBOSS_PUBKEY:?Set MINIBOSS_PUBKEY before running}"
 XMRIG_VERSION="6.25.0"
