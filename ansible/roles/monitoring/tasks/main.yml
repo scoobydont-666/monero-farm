@@ -84,6 +84,7 @@
     name:
       - prometheus
       - prometheus-node-exporter
+      - prometheus-blackbox-exporter
     state: present
 
 - name: Deploy Prometheus config
@@ -157,3 +158,12 @@
     name: grafana-server
     state: started
     enabled: true
+
+# --- B4 — monerod log rotation (copytruncate; monerod ignores SIGHUP) ---
+- name: Deploy monerod logrotate config
+  ansible.builtin.template:
+    src: monerod-logrotate.j2
+    dest: /etc/logrotate.d/monerod
+    owner: root
+    group: root
+    mode: "0644"

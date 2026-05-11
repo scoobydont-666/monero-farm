@@ -91,3 +91,38 @@ groups:
     annotations:
       summary: "High RAM usage"
       description: "Machine RAM usage exceeded 90%."
+
+  # B1 — ZMQ heartbeat: P2Pool uses ZMQ for block notifications; silent death = deaf relay
+  - alert: MonerodZmqDown
+    expr: probe_success{job="monerod_zmq_probe"} == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monerod ZMQ port 18083 is unreachable"
+      description: "TCP probe to 127.0.0.1:18083 failed for 2 minutes. P2Pool will not receive new block notifications."
+
+  # B2 — P2Pool share staleness: 0 shares for 24h = sidechain fork or monerod desync
+  - alert: P2PoolNoSharesFor24h
+    expr: |
+      (
+        (time() - p2pool_local_stratum_last_share_timestamp{chain="mini"}) > 86400
+        or
+        (time() - p2pool_local_stratum_last_share_timestamp{chain="main"}) > 86400
+      )
+    for: 30m
+    labels:
+      severity: warning
+    annotations:
+      summary: "P2Pool sidechain {{ '{{' }} $labels.chain {{ '}}' }} has had no shares for 24h"
+      description: "Last share timestamp is more than 24 hours old. Possible sidechain fork, monerod desync, or no miners connected."
+
+  # B3 — monerod reorg depth: get_alternate_chains; >3 unexpected competing blocks
+  - alert: MonerodDeepReorg
+    expr: monero_alternate_chains > 3
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Monerod has {{ '{{' }} $value {{ '}}' }} alternate chains (possible reorg)"
+      description: "get_alternate_chains returned more than 3 entries. Investigate with monerod get_alternate_chains RPC."

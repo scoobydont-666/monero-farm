@@ -23,6 +23,21 @@ scrape_configs:
     static_configs:
       - targets: ['127.0.0.1:{{ observer_exporter_port }}']
 
+  # B1 — ZMQ TCP heartbeat probe (blackbox_exporter tcp_connect module)
+  - job_name: 'monerod_zmq_probe'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets: ['127.0.0.1:18083']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: '127.0.0.1:{{ blackbox_exporter_port | default(9115) }}'
+
 {% if prometheus_remote_targets is defined %}
   # Remote fleet targets
 {% for target in prometheus_remote_targets %}
