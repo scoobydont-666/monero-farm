@@ -1,5 +1,5 @@
 ---
-# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 6 — wallet assert)
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, Group A residuals A3-A6)
 # P2Pool role — install binary + deploy multiple sidechain instances
 
 # --- Pre-flight: wallet must be set ---
@@ -58,6 +58,7 @@
   when: p2pool_current_version.rc != 0 or ('v' + p2pool_version) not in p2pool_current_version.stdout
 
 # --- Directories ---
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, Group A residuals A4 per-instance data-dir + A5 wallet env)
 - name: Create P2Pool home data directories (peer list cache)
   ansible.builtin.file:
     path: "/home/p2pool/.p2pool/{{ item }}"
@@ -77,6 +78,17 @@
     group: root
     mode: "0750"
 
+- name: Create P2Pool per-instance data directories (A4 — isolates sidechain cache per mode)
+  ansible.builtin.file:
+    path: "/var/lib/p2pool/{{ item.mode }}"
+    state: directory
+    owner: p2pool
+    group: p2pool
+    mode: "0750"
+  loop: "{{ p2pool_instances }}"
+  loop_control:
+    label: "{{ item.mode }}"
+
 - name: Create P2Pool data-api directories
   ansible.builtin.file:
     path: "{{ p2pool_api_base }}/api-{{ item.mode }}"
@@ -87,6 +99,28 @@
   loop: "{{ p2pool_instances }}"
   loop_control:
     label: "{{ item.mode }}"
+
+# --- Wallet env file (A5) — out of ExecStart, 0600 root:root, not in systemctl-cat output ---
+- name: Create /etc/monero-farm directory for env files
+  ansible.builtin.file:
+    path: /etc/monero-farm
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Template P2Pool wallet env file (loaded via EnvironmentFile in unit)
+  ansible.builtin.copy:
+    dest: /etc/monero-farm/p2pool-wallet.env
+    content: "P2POOL_WALLET={{ monero_wallet_address }}\n"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify:
+    - restart p2pool-main
+    - restart p2pool-mini
+    - restart p2pool-nano
 
 # --- Systemd units ---
 - name: Deploy p2pool systemd units

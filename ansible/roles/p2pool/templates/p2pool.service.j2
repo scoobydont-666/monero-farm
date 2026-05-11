@@ -1,14 +1,16 @@
+{# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, Group A residuals A4 data-dir + A5 wallet-env + A6 Requires) #}
 [Unit]
 Description=P2Pool {{ item.mode | capitalize }} Sidechain
 After=network-online.target monerod.service
-Wants=monerod.service
+Requires=monerod.service
 
 [Service]
 User=p2pool
 Group=p2pool
 Type=simple
+EnvironmentFile=/etc/monero-farm/p2pool-wallet.env
 ExecStart={{ p2pool_bin }} \
-  --wallet {{ monero_wallet_address }} \
+  --wallet ${P2POOL_WALLET} \
   --host 127.0.0.1 \
   --rpc-port {{ monero_rpc_port }} \
   --zmq-port {{ monero_zmq_port }} \
@@ -17,14 +19,16 @@ ExecStart={{ p2pool_bin }} \
   --data-api {{ p2pool_api_base }}/api-{{ item.mode }} \
   --stratum-api \
   --local-api 127.0.0.1:{{ item.local_api_port }} \
+  --data-dir /var/lib/p2pool/{{ item.mode }} \
   --loglevel {{ p2pool_loglevel }} \
 {% if item.mode == 'mini' %}
-  --no-upnp --mini
+  --no-upnp --mini \
 {% elif item.mode == 'nano' %}
-  --no-upnp --nano
+  --no-upnp --nano \
 {% else %}
-  --no-upnp
+  --no-upnp \
 {% endif %}
+  --no-randomx-init
 
 Restart=always
 RestartSec=5

@@ -1,4 +1,22 @@
 ---
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, Group A residuals A3-A6)
 - name: reload systemd
   ansible.builtin.systemd:
     daemon_reload: true
+
+# One handler per instance so only the affected unit restarts.
+# Ordered after monerod — P2Pool must not start before the node is up.
+- name: restart p2pool-main
+  ansible.builtin.systemd:
+    name: p2pool-main
+    state: restarted
+
+- name: restart p2pool-mini
+  ansible.builtin.systemd:
+    name: p2pool-mini
+    state: restarted
+
+- name: restart p2pool-nano
+  ansible.builtin.systemd:
+    name: p2pool-nano
+    state: restarted
