@@ -66,6 +66,13 @@ else
     fail "stratum: not listening on :3333"
 fi
 
+# C5 — accept-level probe: verify stratum actually accepts connections
+if echo -n "" | nc -z -w2 127.0.0.1 3333 2>/dev/null; then
+    pass "stratum: accepts connections on 127.0.0.1:3333"
+else
+    warn "stratum: listener present but connection refused on 127.0.0.1:3333"
+fi
+
 echo ""
 
 # --- XMRig ---

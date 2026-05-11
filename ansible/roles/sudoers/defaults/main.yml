@@ -1,55 +1,53 @@
 ---
+# C2 — sudoers tightened to monero-farm operational scope only.
+# Removed: bash, tee, cp, sed, curl, mv, chown, chmod, mkdir, install,
+#          cat, head, tail, grep, find, stat, ls, diff, dpkg, apt-get,
+#          mount, umount, exportfs, useradd, usermod, groupadd, visudo.
+# Rationale: broad file-write + shell commands = trivial privilege escalation.
+# "bash" NOPASSWD is equivalent to unrestricted root — never appropriate.
 sudoers_user: josh
 sudoers_nopasswd_commands:
-  # Service management
-  - /usr/bin/systemctl
-  - /usr/bin/journalctl
-  # Package management
+  # Service management — start/stop/status monero-farm units only
+  - /usr/bin/systemctl start monerod
+  - /usr/bin/systemctl stop monerod
+  - /usr/bin/systemctl restart monerod
+  - /usr/bin/systemctl status monerod
+  - /usr/bin/systemctl start p2pool-main
+  - /usr/bin/systemctl stop p2pool-main
+  - /usr/bin/systemctl restart p2pool-main
+  - /usr/bin/systemctl status p2pool-main
+  - /usr/bin/systemctl start p2pool-mini
+  - /usr/bin/systemctl stop p2pool-mini
+  - /usr/bin/systemctl restart p2pool-mini
+  - /usr/bin/systemctl status p2pool-mini
+  - /usr/bin/systemctl start p2pool-nano
+  - /usr/bin/systemctl stop p2pool-nano
+  - /usr/bin/systemctl restart p2pool-nano
+  - /usr/bin/systemctl status p2pool-nano
+  - /usr/bin/systemctl start p2pool-exporter
+  - /usr/bin/systemctl stop p2pool-exporter
+  - /usr/bin/systemctl restart p2pool-exporter
+  - /usr/bin/systemctl status p2pool-exporter
+  # Log reading — monero-farm units only
+  - /usr/bin/journalctl -u monerod
+  - /usr/bin/journalctl -u p2pool-main
+  - /usr/bin/journalctl -u p2pool-mini
+  - /usr/bin/journalctl -u p2pool-nano
+  - /usr/bin/journalctl -u p2pool-exporter
+  # Package management — Ansible needs this for role applies
   - /usr/bin/apt
-  - /usr/bin/apt-get
-  - /usr/bin/dpkg
-  # File operations
-  - /usr/bin/chown
-  - /usr/bin/chmod
-  - /usr/bin/mkdir
-  - /usr/bin/cp
-  - /usr/bin/mv
-  - /usr/bin/tee
-  - /usr/bin/curl
-  - /usr/bin/bash
-  - /usr/bin/install
-  # File reading
-  - /usr/bin/cat
-  - /usr/bin/head
-  - /usr/bin/tail
-  - /usr/bin/grep
-  - /usr/bin/find
-  - /usr/bin/stat
-  - /usr/bin/ls
-  - /usr/bin/diff
-  - /usr/bin/sed
-  # Network
-  - /usr/sbin/ufw
-  - /usr/sbin/sysctl
-  - /usr/bin/ss
-  # User management
-  - /usr/sbin/useradd
-  - /usr/sbin/usermod
-  - /usr/sbin/groupadd
+  # Firewall — UFW status/allow/deny only
+  - /usr/sbin/ufw status
+  - /usr/sbin/ufw allow
+  - /usr/sbin/ufw deny
   # Security tools
-  - /usr/sbin/visudo
   - /usr/sbin/augenrules
   - /usr/sbin/auditctl
   - /usr/bin/cscli
-  - /usr/bin/openssl
-  # NFS
-  - /usr/bin/mount
-  - /usr/bin/umount
-  - /usr/sbin/exportfs
-  # Ansible
+  # Ansible — deploy role changes
   - /usr/bin/ansible-playbook
   - /usr/bin/ansible
 
 # Host-specific additions (merged with defaults)
 sudoers_extra_commands: []
-# Example: ["/usr/bin/docker", "/usr/bin/nvidia-smi"]
+# Example: ["/usr/bin/systemctl restart xmrig"]

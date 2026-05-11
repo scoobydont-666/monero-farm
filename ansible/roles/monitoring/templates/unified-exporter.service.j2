@@ -5,6 +5,8 @@ After=network.target
 [Service]
 User=exporter
 Group=exporter
+# C1 — RPC credentials via env file, never on CLI (visible in /proc/<pid>/cmdline)
+EnvironmentFile=-/etc/monero-farm/exporter.env
 ExecStart=/usr/bin/python3 {{ unified_exporter_dir }}/p2pool_exporter.py \
   --listen-address {{ unified_exporter_bind }} \
   --listen-port {{ unified_exporter_port }}
