@@ -1,5 +1,5 @@
 ---
-# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 6 — wallet assert)
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, Group A residuals A3-A6)
 # P2Pool role — install binary + deploy multiple sidechain instances
 
 # --- Pre-flight: wallet must be set ---
