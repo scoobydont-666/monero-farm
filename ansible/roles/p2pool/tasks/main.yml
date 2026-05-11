@@ -1,5 +1,21 @@
 ---
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 6 — wallet assert)
 # P2Pool role — install binary + deploy multiple sidechain instances
+
+# --- Pre-flight: wallet must be set ---
+- name: Assert monero_wallet_address is set and looks like a Monero primary address
+  ansible.builtin.assert:
+    that:
+      - monero_wallet_address is defined
+      - monero_wallet_address | length == 95
+      - monero_wallet_address is match('^4[0-9A-HJ-NP-Za-km-z]{94}$')
+    fail_msg: >-
+      monero_wallet_address must be set in inventory (ansible/inventory/hosts.yml)
+      to a valid Monero primary address (95 chars, starts with 4). Subaddresses
+      (start with 8) and integrated addresses (95 chars + payment id) are not
+      supported by P2Pool.
+    success_msg: "Wallet address validated."
+    quiet: true
 
 # --- Binary installation ---
 - name: Check current p2pool version

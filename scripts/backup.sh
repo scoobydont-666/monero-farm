@@ -17,6 +17,14 @@ echo "Backing up project files..."
 tar czf "$BACKUP_DIR/monero-farm-project.tar.gz" \
     --exclude='.git' \
     --exclude='backups' \
+    --exclude='.mcp.json' \
+    --exclude='.env' \
+    --exclude='.env.*' \
+    --exclude='*.key' \
+    --exclude='*.pem' \
+    --exclude='id_rsa*' \
+    --exclude='id_ed25519*' \
+    --exclude='.ssh' \
     -C /opt monero-farm/
 
 # P2Pool state (small — sidechain data)

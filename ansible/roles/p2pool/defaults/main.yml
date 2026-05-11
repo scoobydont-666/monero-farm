@@ -30,4 +30,7 @@ p2pool_download_url: "https://github.com/SChernykh/p2pool/releases/download/v{{ 
 # Inherited from inventory or monero role defaults
 monero_rpc_port: 18081
 monero_zmq_port: 18083
-monero_wallet_address: "TODO_YOUR_PRIMARY_ADDRESS"
+# Wallet MUST be set in ansible/inventory/hosts.yml (gitignored). Empty default
+# fails fast via the pre-flight assert in tasks/main.yml.
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 6)
+monero_wallet_address: ""

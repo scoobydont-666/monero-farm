@@ -1,9 +1,18 @@
 ---
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md — josh 6-item directive 2026-05-10)
 # Monero Farm — Master Playbook
 # Usage:
 #   ansible-playbook -i inventory/hosts.yml site.yml
 #   ansible-playbook -i inventory/hosts.yml site.yml --tags xmrig  # single role
 #   ansible-playbook -i inventory/hosts.yml site.yml --check --diff # dry run
+#
+# Mining gate:
+#   The XMRig play is gated behind `mining_enabled` (default false). The role and
+#   its templates are intact and ready — the gate just controls whether the play
+#   runs. To unlock mining (Josh-approved only):
+#     ansible-playbook site.yml --tags xmrig -e mining_enabled=true
+#   Or set `mining_enabled: true` in inventory group_vars/vars.
+#   Decision: 2026-04-06 — no mining without explicit approval.
 
 - name: Monero Farm — Base Setup
   hosts: all
@@ -33,11 +42,28 @@
     - role: monitoring
       tags: [monitoring, prometheus, grafana]
 
+# plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 2 — xmrig play gate)
 - name: Monero Farm — XMRig Miners
   hosts: miners:cluster_miners
   become: true
+  # Gated: mining is OFF by default since 2026-04-06. Enable explicitly per
+  # the header comment when Josh authorizes. The role stays installed; only
+  # this play's execution is conditional.
+  vars:
+    mining_enabled: "{{ mining_enabled | default(false) }}"
+  pre_tasks:
+    - name: Assert mining is explicitly enabled before applying xmrig role
+      ansible.builtin.assert:
+        that:
+          - mining_enabled | bool
+        fail_msg: >-
+          XMRig play is gated. Pass `-e mining_enabled=true` to apply this role,
+          or set `mining_enabled: true` in inventory. Decision filed 2026-04-06.
+        success_msg: "Mining gate open — applying xmrig role."
+      tags: [xmrig, always]
   roles:
     - role: xmrig
+      when: mining_enabled | bool
       tags: [xmrig]
 
 - name: Fleet Hardening — Security
