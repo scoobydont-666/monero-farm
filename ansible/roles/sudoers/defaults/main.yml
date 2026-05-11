@@ -36,19 +36,24 @@ sudoers_nopasswd_commands:
   - /usr/bin/journalctl -u p2pool-exporter
   # Package management — Ansible needs this for role applies
   - /usr/bin/apt
-  # Firewall — UFW status/allow/deny/delete/reload (minimum-privilege)
+  # Firewall — UFW status/allow/deny/reload (minimum-privilege)
   # sudoers(5) wildcard semantics: a `*` at the end of a Cmnd's args matches all
   # remaining command-line args. Listing a subcommand without `*` (e.g. just
   # `/usr/sbin/ufw allow`) requires the user to invoke it EXACTLY with no further
   # args — useless for real firewall rule management like `ufw allow 3333/tcp`.
   # Pattern: subcommand-only entry for no-arg invocations + `subcommand *` for
-  # arg-bearing ones. Dangerous subcommands (reset/disable/enable) intentionally
-  # excluded.
+  # arg-bearing ones.
+  #
+  # Intentionally excluded (mr-hardass GATE 3 HIGH on PR #4, 2026-05-11):
+  #   - reset / disable / enable: catastrophic firewall ops
+  #   - delete *: a compromised josh account could remove protective rules
+  #     (e.g. `sudo ufw delete allow out all`) to disrupt connectivity AND
+  #     defang corrective measures. Removal of rules is operationally rare;
+  #     ops should `ufw reset` + Ansible re-apply (out-of-band) to remove.
   - /usr/sbin/ufw status
   - /usr/sbin/ufw status *
   - /usr/sbin/ufw allow *
   - /usr/sbin/ufw deny *
-  - /usr/sbin/ufw delete *
   - /usr/sbin/ufw reload
   # Security tools
   - /usr/sbin/augenrules
