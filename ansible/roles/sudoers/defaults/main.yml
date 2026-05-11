@@ -36,13 +36,20 @@ sudoers_nopasswd_commands:
   - /usr/bin/journalctl -u p2pool-exporter
   # Package management — Ansible needs this for role applies
   - /usr/bin/apt
-  # Firewall — UFW status/allow/deny only
-  # sudoers(5): listing a command WITHOUT trailing args matches ANY argument list.
-  # Listing "" means ONLY the no-arg form (literal empty string) — that would block
-  # "sudo ufw allow 3333/tcp". Omit args entirely to allow any rule argument.
+  # Firewall — UFW status/allow/deny/delete/reload (minimum-privilege)
+  # sudoers(5) wildcard semantics: a `*` at the end of a Cmnd's args matches all
+  # remaining command-line args. Listing a subcommand without `*` (e.g. just
+  # `/usr/sbin/ufw allow`) requires the user to invoke it EXACTLY with no further
+  # args — useless for real firewall rule management like `ufw allow 3333/tcp`.
+  # Pattern: subcommand-only entry for no-arg invocations + `subcommand *` for
+  # arg-bearing ones. Dangerous subcommands (reset/disable/enable) intentionally
+  # excluded.
   - /usr/sbin/ufw status
-  - /usr/sbin/ufw allow
-  - /usr/sbin/ufw deny
+  - /usr/sbin/ufw status *
+  - /usr/sbin/ufw allow *
+  - /usr/sbin/ufw deny *
+  - /usr/sbin/ufw delete *
+  - /usr/sbin/ufw reload
   # Security tools
   - /usr/sbin/augenrules
   - /usr/sbin/auditctl
