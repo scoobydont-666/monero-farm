@@ -57,3 +57,5 @@ secrets/
 # Operational notes — kept local, not for public repo
 reports/
 plans/ssh-blast-radius-remediation.md
+# Kin MCP config backups
+.mcp.json.bak.kincap-*
