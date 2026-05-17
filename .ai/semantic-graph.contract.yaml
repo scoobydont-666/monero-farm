@@ -1,0 +1,229 @@
+schema_version: "1.0.0"
+contract_id: scoobydont-666-monero-farm
+repo: scoobydont-666/monero-farm
+contract_version: "0.1.0"
+status: active
+maturity: hardening
+description: >
+  XMR infrastructure — monerod full node + P2Pool decentralized relay
+  (main/mini/nano sidechains) + Prometheus/Grafana monitoring. All services
+  systemd + Ansible-provisioned. MAINTENANCE MODE per README.md
+  [per /opt/monero-farm/README.md] — XMRig fleet disabled, P2Pool relay +
+  monerod remain operational on the coordinator host.
+entities:
+  - id: service-monerod
+    kind: service
+    name: monerod
+    qualified_name: monerod.systemd
+    file: ansible/roles/monero/
+    confidence: 1.0
+    description: Pruned full node, RPC :18081, ZMQ :18083.
+    tags: [monero, fullnode, systemd]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-p2pool-main
+    kind: service
+    name: p2pool-main
+    qualified_name: p2pool.main.systemd
+    file: ansible/roles/p2pool/
+    confidence: 1.0
+    description: P2Pool main sidechain — stratum :4444, p2p :37889.
+    tags: [p2pool, sidechain-main, systemd]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-p2pool-mini
+    kind: service
+    name: p2pool-mini
+    qualified_name: p2pool.mini.systemd
+    file: ansible/roles/p2pool/
+    confidence: 1.0
+    description: P2Pool mini sidechain.
+    tags: [p2pool, sidechain-mini, systemd]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-p2pool-nano
+    kind: service
+    name: p2pool-nano
+    qualified_name: p2pool.nano.systemd
+    file: ansible/roles/p2pool/
+    confidence: 1.0
+    description: P2Pool nano sidechain.
+    tags: [p2pool, sidechain-nano, systemd]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-xmrig-fleet
+    kind: service
+    name: xmrig-fleet
+    qualified_name: xmrig.fleet.systemd
+    file: ansible/roles/xmrig/
+    confidence: 1.0
+    description: XMRig miner fleet — STATUS DISABLED since 2026-04-06.
+    tags: [xmrig, disabled, miner]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-prometheus-monero
+    kind: service
+    name: prometheus-monero
+    qualified_name: prometheus.monero
+    file: ansible/roles/monitoring/
+    confidence: 1.0
+    description: Prometheus metrics server for Monero stack.
+    tags: [prometheus, monitoring]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: service-grafana-monero
+    kind: service
+    name: grafana-monero
+    qualified_name: grafana.monero
+    file: ansible/roles/monitoring/
+    confidence: 1.0
+    description: Grafana dashboards for Monero stack.
+    tags: [grafana, dashboard]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-monero
+    kind: role
+    name: monero
+    qualified_name: monero.role
+    file: ansible/roles/monero/
+    confidence: 1.0
+    description: Ansible role provisioning monerod + monero-tools.
+    tags: [ansible, monero]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-p2pool
+    kind: role
+    name: p2pool
+    qualified_name: p2pool.role
+    file: ansible/roles/p2pool/
+    confidence: 1.0
+    description: Ansible role provisioning P2Pool (main/mini/nano).
+    tags: [ansible, p2pool]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-xmrig
+    kind: role
+    name: xmrig
+    qualified_name: xmrig.role
+    file: ansible/roles/xmrig/
+    confidence: 1.0
+    description: Ansible role for XMRig fleet (currently inactive).
+    tags: [ansible, xmrig, inactive]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-monitoring-mf
+    kind: role
+    name: monitoring-mf
+    qualified_name: monitoring.monero-farm.role
+    file: ansible/roles/monitoring/
+    confidence: 1.0
+    description: Monero-farm monitoring stack role.
+    tags: [ansible, monitoring]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-base-mf
+    kind: role
+    name: base-mf
+    qualified_name: base.monero-farm.role
+    file: ansible/roles/base/
+    confidence: 1.0
+    description: Base infrastructure role for monero-farm hosts.
+    tags: [ansible, base]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-security-mf
+    kind: role
+    name: security-mf
+    qualified_name: security.monero-farm.role
+    file: ansible/roles/security/
+    confidence: 1.0
+    description: Security hardening role (sshd, fail2ban).
+    tags: [ansible, security]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-sudoers-mf
+    kind: role
+    name: sudoers-mf
+    qualified_name: sudoers.monero-farm.role
+    file: ansible/roles/sudoers/
+    confidence: 1.0
+    description: Scoped sudoers rules.
+    tags: [ansible, sudoers]
+    valid_from: "2026-05-17"
+    valid_until: null
+  - id: role-nfs-swarm-mf
+    kind: role
+    name: nfs-swarm-mf
+    qualified_name: nfs_swarm.monero-farm.role
+    file: ansible/roles/nfs_swarm/
+    confidence: 1.0
+    description: NFS swarm mounts for monero-farm hosts.
+    tags: [ansible, nfs]
+    valid_from: "2026-05-17"
+    valid_until: null
+relations:
+  - id: rel-monero-owns-monerod
+    from: role-monero
+    to: service-monerod
+    type: owns
+    confidence: 1.0
+  - id: rel-p2pool-owns-main
+    from: role-p2pool
+    to: service-p2pool-main
+    type: owns
+    confidence: 1.0
+  - id: rel-p2pool-owns-mini
+    from: role-p2pool
+    to: service-p2pool-mini
+    type: owns
+    confidence: 1.0
+  - id: rel-p2pool-owns-nano
+    from: role-p2pool
+    to: service-p2pool-nano
+    type: owns
+    confidence: 1.0
+  - id: rel-xmrig-owns-fleet
+    from: role-xmrig
+    to: service-xmrig-fleet
+    type: owns
+    confidence: 1.0
+  - id: rel-monitoring-owns-prometheus
+    from: role-monitoring-mf
+    to: service-prometheus-monero
+    type: owns
+    confidence: 1.0
+  - id: rel-monitoring-owns-grafana
+    from: role-monitoring-mf
+    to: service-grafana-monero
+    type: owns
+    confidence: 1.0
+  - id: rel-p2pool-main-deps-monerod
+    from: service-p2pool-main
+    to: service-monerod
+    type: depends_on
+    confidence: 1.0
+  - id: rel-p2pool-mini-deps-monerod
+    from: service-p2pool-mini
+    to: service-monerod
+    type: depends_on
+    confidence: 1.0
+  - id: rel-p2pool-nano-deps-monerod
+    from: service-p2pool-nano
+    to: service-monerod
+    type: depends_on
+    confidence: 1.0
+  - id: rel-prometheus-reads-monerod
+    from: service-prometheus-monero
+    to: service-monerod
+    type: reads_from
+    confidence: 1.0
+  - id: rel-prometheus-reads-p2pool-main
+    from: service-prometheus-monero
+    to: service-p2pool-main
+    type: reads_from
+    confidence: 1.0
+  - id: rel-grafana-reads-prometheus
+    from: service-grafana-monero
+    to: service-prometheus-monero
+    type: reads_from
+    confidence: 1.0
