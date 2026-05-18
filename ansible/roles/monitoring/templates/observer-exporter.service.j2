@@ -15,7 +15,12 @@ ExecStart=/usr/bin/python3 {{ observer_exporter_dir }}/p2pool_observer_exporter.
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
-Environment=MINER_ADDRESS={{ monero_wallet_address }}
+# plan-approved: ansible-role-edit -- H-001 wallet leak fix (mr-hardass 2026-05-18):
+# wallet must NOT be inlined here — systemctl show / systemctl cat /
+# journalctl unit dumps render the .service file world-readable.
+# EnvironmentFile= is loaded by systemd PID 1 (mode 0600 root:root OK);
+# downstream User=exporter still receives the env vars after privilege drop.
+EnvironmentFile=/etc/monero-farm/p2pool-wallet.env
 ProtectSystem=strict
 PrivateTmp=true
 NoNewPrivileges=true

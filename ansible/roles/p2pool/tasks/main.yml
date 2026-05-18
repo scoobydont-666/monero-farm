@@ -109,10 +109,13 @@
     group: root
     mode: "0750"
 
-- name: Template P2Pool wallet env file (loaded via EnvironmentFile in unit)
+# plan-approved: ansible-role-edit -- H-001 wallet leak fix (mr-hardass 2026-05-18)
+- name: Template P2Pool wallet env file (loaded via EnvironmentFile by systemd PID 1, so mode 0600 root:root is OK; downstream User=exporter etc. still receive the env vars after privilege drop)
   ansible.builtin.copy:
     dest: /etc/monero-farm/p2pool-wallet.env
-    content: "P2POOL_WALLET={{ monero_wallet_address }}\n"
+    content: |
+      P2POOL_WALLET={{ monero_wallet_address }}
+      MINER_ADDRESS={{ monero_wallet_address }}
     owner: root
     group: root
     mode: "0600"
@@ -121,6 +124,7 @@
     - restart p2pool-main
     - restart p2pool-mini
     - restart p2pool-nano
+    - restart observer-exporter  # plan-approved: ansible-role-edit -- cross-role handler in monitoring/handlers/main.yml
 
 # --- Systemd units ---
 - name: Deploy p2pool systemd units
