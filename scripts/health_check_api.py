@@ -11,22 +11,48 @@ import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
-# Health check commands
+import subprocess
+
+
+def _systemctl_active(unit: str) -> bool:
+    r = subprocess.run(
+        ["systemctl", "is-active", "--quiet", unit],
+        capture_output=True, timeout=5,
+    )
+    return r.returncode == 0
+
+
+def _http_body_contains(url: str, needle: bytes, data: bytes | None = None) -> bool:
+    cmd = ["curl", "-s", "--max-time", "2", url]
+    if data is not None:
+        cmd += ["-d", data.decode()]
+    r = subprocess.run(cmd, capture_output=True, timeout=5)
+    return r.returncode == 0 and needle in r.stdout
+
+
+def _ss_listen_port(port: str) -> bool:
+    r = subprocess.run(["ss", "-tln"], capture_output=True, timeout=5)
+    return r.returncode == 0 and f":{port}".encode() in r.stdout
+
+
 CHECKS = {
-    "monerod_systemd": "systemctl is-active --quiet monerod 2>/dev/null && echo ok || echo fail",
-    "monerod_rpc": "curl -s --max-time 2 http://127.0.0.1:18081/json_rpc -d '{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"get_info\"}' | grep -q result && echo ok || echo fail",
-    "p2pool_systemd": "systemctl is-active --quiet p2pool 2>/dev/null && echo ok || echo fail",
-    "p2pool_stratum": "ss -tlnp 2>/dev/null | grep -q ':3333' && echo ok || echo fail",
-    "xmrig_api": "curl -s --max-time 2 http://127.0.0.1:8082/2/summary | grep -q hashrate && echo ok || echo fail",
+    "monerod_systemd": lambda: _systemctl_active("monerod"),
+    "monerod_rpc": lambda: _http_body_contains(
+        "http://127.0.0.1:18081/json_rpc",
+        b"result",
+        data=b'{"jsonrpc":"2.0","id":"0","method":"get_info"}',
+    ),
+    "p2pool_systemd": lambda: _systemctl_active("p2pool"),
+    "p2pool_stratum": lambda: _ss_listen_port("3333"),
+    "xmrig_api": lambda: _http_body_contains(
+        "http://127.0.0.1:8082/2/summary", b"hashrate"
+    ),
 }
 
 
-def run_check(cmd: str) -> bool:
-    """Run shell command, return True if exit code is 0."""
-    import subprocess
+def run_check(check_fn) -> bool:
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, timeout=5)
-        return result.returncode == 0
+        return check_fn()
     except subprocess.TimeoutExpired:
         return False
     except Exception:
@@ -36,8 +62,8 @@ def run_check(cmd: str) -> bool:
 def get_health_status() -> dict:
     """Check all services and return status dict."""
     results = {}
-    for name, cmd in CHECKS.items():
-        results[name] = "healthy" if run_check(cmd) else "unhealthy"
+    for name, fn in CHECKS.items():
+        results[name] = "healthy" if run_check(fn) else "unhealthy"
 
     healthy_count = sum(1 for v in results.values() if v == "healthy")
     total = len(results)
