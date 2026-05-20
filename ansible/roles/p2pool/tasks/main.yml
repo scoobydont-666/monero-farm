@@ -16,6 +16,8 @@
       supported by P2Pool.
     success_msg: "Wallet address validated."
     quiet: true
+  # plan-approved: ansible-role-edit -- task-4785 p2pool-env tag (isolate H-001 deploy)
+  tags: ['p2pool-env']
 
 # --- Binary installation ---
 - name: Check current p2pool version
@@ -101,6 +103,7 @@
     label: "{{ item.mode }}"
 
 # --- Wallet env file (A5) — out of ExecStart, 0600 root:root, not in systemctl-cat output ---
+# plan-approved: ansible-role-edit -- task-4785 p2pool-env tag
 - name: Create /etc/monero-farm directory for env files
   ansible.builtin.file:
     path: /etc/monero-farm
@@ -108,6 +111,7 @@
     owner: root
     group: root
     mode: "0750"
+  tags: ['p2pool-env']
 
 # plan-approved: ansible-role-edit -- H-001 wallet leak fix (mr-hardass 2026-05-18)
 - name: Template P2Pool wallet env file (loaded via EnvironmentFile by systemd PID 1, so mode 0600 root:root is OK; downstream User=exporter etc. still receive the env vars after privilege drop)
@@ -120,6 +124,10 @@
     group: root
     mode: "0600"
   no_log: true
+  # tag p2pool-env (task-4785): lets the H-001 wallet-env fix deploy in
+  # isolation — `--tags p2pool-env` runs only the assert + dir + this template,
+  # skipping the not-yet-idempotent binary download/extract tasks.
+  tags: ['p2pool-env']
   notify:
     - restart p2pool-main
     - restart p2pool-mini
