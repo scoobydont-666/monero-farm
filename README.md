@@ -1,5 +1,8 @@
 # Monero Farm
 
+> `status: ACTIVE` · `last_verified: 2026-06-01` · `owner: josh` · `tier: tool`
+
+
 > **MAINTENANCE MODE** — Active mining has been STOPPED since 2026-04-06. Only the P2Pool relay component remains operational on miniboss. No XMRig mining runs anywhere in the fleet.
 
 XMR infrastructure management — **monerod** full node + **P2Pool** decentralized relay (main/mini/nano sidechains) + **Prometheus + Grafana** observability.
