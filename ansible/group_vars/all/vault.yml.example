@@ -1,0 +1,11 @@
+# plan-approved: ansible-role-edit (task-4751: mr-hardass H-001 defense-in-depth wallet leak mitigation)
+---
+# Ansible Vault — Encrypted secrets (group_vars/all/vault.yml)
+# Never commit unencrypted; this .example file is for documentation only.
+# To create the encrypted vault:
+#   echo "vault_monero_wallet_address: YOUR_PRIMARY_ADDRESS" > /tmp/vault-plaintext.yml
+#   ansible-vault encrypt --vault-password-file ~/.ansible-vault-password -i /tmp/vault-plaintext.yml
+#   mv /tmp/vault-plaintext.yml ansible/group_vars/all/vault.yml
+#   rm /tmp/vault-plaintext.yml
+
+vault_monero_wallet_address: "YOUR_PRIMARY_MONERO_ADDRESS_HERE"
