@@ -2,7 +2,7 @@
 
 ## Status
 - `status: MAINTENANCE-MODE`
-- `last_verified: 2026-04-20`
+- `last_verified: 2026-05-19`
 - `owner: josh`
 - `tier: infra`
 
@@ -168,3 +168,15 @@ Monero Farm is the most independent head — it shares almost nothing with the A
 
 - Part of a multi-project platform with shared infrastructure
 - **Installer Script**: Original bootstrap script (gold image)
+
+## Disambiguation
+miniboss runs the **P2Pool relay** (main + mini + nano sidechains) and `monerod` full node. It does **NOT** run XMRig. The global rule "miniboss is NOT a miner — do not deploy XMRig here" applies only to the miner binary, not to P2Pool/monerod.
+
+## Pointers (canonical sources)
+- Global rules: `~/.claude/CLAUDE.md`
+- Routing tiers + HIVE/CB/HNN tooling: `/opt/hydra-project/CLAUDE.md`
+- Fleet hardware: `cb_peek alias="fleet-specs"`
+- Sub-project registry: `cb_peek alias="project-registry"`
+- Cross-session facts: `hnn_query` filtered by repo
+- Ports: `/opt/hydra-project/docs/port-registry.md`
+- Domain skill: `crypto-monero-wizard`
