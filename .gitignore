@@ -59,3 +59,6 @@ reports/
 plans/ssh-blast-radius-remediation.md
 # Kin MCP config backups
 .mcp.json.bak.kincap-*
+
+# Claude Code local worktrees / agent state — never track (nested worktree, may hold live xmrig config)
+.claude/
