@@ -59,12 +59,13 @@ jobs:
           tar xzf prometheus-2.52.0.linux-amd64.tar.gz
           sudo cp prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/
       
-      - name: Check Prometheus config
-        run: promtool check config /opt/monero-farm-worktrees/task-11771/ansible/roles/monitoring/templates/prometheus.yml.j2 || true
-        # Note: template needs vars; real check happens on deployed host
-      
       - name: Check Prometheus rules
-        run: promtool check rules /opt/monero-farm-worktrees/task-11771/ansible/roles/monitoring/templates/monerod_p2pool_alerts.yml.j2 || true
+        run: promtool check rules ansible/roles/monitoring/templates/monerod_p2pool_alerts.yml.j2 || true
+      
+      - name: Check Prometheus config template syntax
+        run: |
+          # Config template has vars - skip full check, validate YAML syntax
+          python3 -c "import yaml; yaml.safe_load(open('ansible/roles/monitoring/templates/prometheus.yml.j2'))" || true
 
   security:
     name: Security Scan (gitleaks)
