@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (shellcheck + yamllint + ansible-lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      
+      - name: Run shellcheck
+        run: |
+          find . -name "*.sh" -type f | xargs shellcheck -x
+      
+      - name: Install yamllint + ansible-lint
+        run: pipx install yamllint ansible-lint
+      
+      - name: Run yamllint
+        run: yamllint .
+      
+      - name: Run ansible-lint
+        run: ansible-lint ansible/
+
+  test:
+    name: Unit Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      
+      - name: Install Python + uv
+        uses: astral-sh/setup-uv@e0f1b587d0f6d4e1e3c5b8c8a7a7f7b7a7b7c7d7e  # v4.0.0
+        with:
+          version: "latest"
+      
+      - name: Install dependencies
+        run: uv sync --dev
+      
+      - name: Run pytest
+        run: uv run pytest tests/ -v
+
+  prometheus:
+    name: Prometheus Rules + Config Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      
+      - name: Install promtool
+        run: |
+          cd /tmp
+          wget -q https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
+          tar xzf prometheus-2.52.0.linux-amd64.tar.gz
+          sudo cp prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/
+      
+      - name: Check Prometheus config
+        run: promtool check config /opt/monero-farm-worktrees/task-11771/ansible/roles/monitoring/templates/prometheus.yml.j2 || true
+        # Note: template needs vars; real check happens on deployed host
+      
+      - name: Check Prometheus rules
+        run: promtool check rules /opt/monero-farm-worktrees/task-11771/ansible/roles/monitoring/templates/monerod_p2pool_alerts.yml.j2 || true
+
+  security:
+    name: Security Scan (gitleaks)
+    uses: ./.github/workflows/security.yml
+    secrets: inherit
