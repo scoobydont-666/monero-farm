@@ -62,3 +62,57 @@ plans/ssh-blast-radius-remediation.md
 
 # Claude Code local worktrees / agent state — never track (nested worktree, may hold live xmrig config)
 .claude/
+# >>> hydra-drift-guard managed block (gitignore-policy.yaml) — DO NOT EDIT >>>
+# Generated from config/gitignore-policy.yaml — edit the YAML, not this block.
+# repo: monero-farm
+# [python_bytecode] Compiled Python — regenerated on every import; never source of truth.
+__pycache__/
+*.py[cod]
+*$py.class
+# [python_tooling_caches] Test/type/lint tool caches — machine-local, reproducible.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+.eggs/
+build/
+dist/
+# [virtualenvs] Interpreter environments — rebuilt from lockfiles; huge; host-specific.
+.venv/
+.venv
+venv/
+.mcp-venv/
+*-venv/
+env/
+# [worktree_dirs] Ephemeral git worktrees created for parallel agent lanes — pollute status of the parent checkout.
+.wt-*/
+wt-*/
+.wt-*
+# [local_databases] Runtime/state SQLite DBs — mutable local state, not versioned artifacts.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+# [logs_and_caches] Log output and generic caches — ephemeral, noisy, sometimes secret-bearing.
+*.log
+logs/
+.cache/
+node_modules/
+training/datasets/
+# [editor_os_cruft] Editor swap files and OS metadata — never part of the project.
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+# [ml_compiled_caches] GPU/ML compile caches (unsloth/torch/triton) — regenerated per run, gigabytes.
+unsloth_compiled_cache/
+.triton/
+*.nsys-rep
+# <<< hydra-drift-guard managed block <<<
