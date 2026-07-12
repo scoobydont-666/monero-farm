@@ -35,30 +35,17 @@ scripts/migrate/initrd
 
 # Kin semantic VCS
 .kin/
-.mcp.json
 
-# === Security: secrets & credentials (fleet standard) ===
-.env
-.env.*
-!.env.example
-!.env.template
-*.key
-*.pem
-*.p12
-*.pfx
-credentials*
-secrets/
-*.secrets
-.secrets.map
-*_rsa
-*_ed25519
-*.gpg
-
-# Operational notes — kept local, not for public repo
-reports/
-plans/ssh-blast-radius-remediation.md
-# Kin MCP config backups
-.mcp.json.bak.kincap-*
-
-# Claude Code local worktrees / agent state — never track (nested worktree, may hold live xmrig config)
+# Agent worktrees
+claude-*.worktree/
+agent-*.worktree/
+.agent-*/
+*.agent-worktree/
 .claude/
+
+# Local worktrees (detached/ephemeral)
+/worktrees/
+*worktree*
+
+# Secrets and vault
+ansible/group_vars/all/vault.yml
