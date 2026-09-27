@@ -34,3 +34,8 @@ monero_zmq_port: 18083
 # Indirection pattern: role uses this variable; it's populated by vault at runtime.
 # plan-approved: ansible-role-edit (plans/2026-05-10-monero-farm-hygiene.md, item 6; task-4751 H-001 vault migration)
 monero_wallet_address: "{{ vault_monero_wallet_address }}"
+
+# task-18040 (2026-09-27): operator shutdown. P2Pool is OFF unless explicitly enabled.
+# All configured sidechains (main/mini/nano) are enforced into
+# stopped+disabled on every run while this is false.
+p2pool_run_enabled: false

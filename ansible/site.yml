@@ -49,21 +49,109 @@
   # Gated: mining is OFF by default since 2026-04-06. Enable explicitly per
   # the header comment when Josh authorizes. The role stays installed; only
   # this play's execution is conditional.
-  vars:
-    mining_enabled: "{{ mining_enabled | default(false) }}"
   pre_tasks:
+    # task-18040 (review REQUEST_CHANGES on #14): the shutdown path and the
+    # admitted-install path are now SEPARATE. The admission assert used to be
+    # unconditional, so every host with mining disabled -- which is the actual
+    # state on every host, since the operator directive is "stop the miners" --
+    # FAILED this play and was excluded from the Fleet Hardening plays that
+    # follow it. A host with nothing to converge was reported as a failure and
+    # silently skipped hardening. The shutdown path now completes cleanly.
+    #
+    # Start authorization is unchanged and still load-bearing: it is the
+    # `when: mining_enabled` on the role below. Nothing here can start a miner.
+
+    # Presence first. A host that never had xmrig installed has nothing to
+    # converge, and that is a clean skip -- which is NOT the same as
+    # swallowing a failure. Verified systemctl behaviour: the unit present
+    # gives rc=0 plus a non-empty --no-legend line; an absent unit gives rc=1
+    # and empty stdout.
+    - name: Detect whether an xmrig unit is installed
+      ansible.builtin.command:
+        cmd: systemctl list-unit-files xmrig.service --no-legend
+      register: xmrig_unit_present
+      changed_when: false
+      check_mode: false
+      # Legitimate on the PROBE only: presence lookup itself may be denied.
+      # rc=2 here means systemctl could not run at all, which the assert below
+      # turns into a failure rather than a false "absent".
+      failed_when: false
+      tags: [xmrig, always]
+
+    - name: Assert the unit-presence probe actually executed
+      ansible.builtin.assert:
+        that:
+          - xmrig_unit_present.rc | default(2) in [0, 1]
+        fail_msg: >-
+          Could not determine xmrig unit presence: `systemctl list-unit-files`
+          returned rc={{ xmrig_unit_present.rc | default('undefined') }}. Treating
+          this as "absent" would skip the shutdown convergence, so the run fails
+          instead.
+      when: xmrig_unit_present.rc is defined
+      tags: [xmrig, always]
+
+    - name: "Converge XMRig shutdown (never starts; runs regardless of the mining gate)"
+      ansible.builtin.systemd:
+        name: xmrig
+        state: stopped
+        enabled: false
+      when:
+        - not (mining_enabled | default(false) | bool)
+        - (xmrig_unit_present.stdout | default('') | trim) | length > 0
+      # task-18040: NO failed_when on this task. It previously reported success
+      # while the unit kept running, so a permission error or a refused stop
+      # left a live miner behind a clean-looking run. A real failure now fails
+      # the play, which is the fail-closed behaviour the directive requires.
+      tags: [xmrig, always]
+
+    # Post-condition. The convergence task returning ok is not proof the miner
+    # is down, so the end state is read back and asserted. A unit still active
+    # under mining_enabled=false is a hard failure, not a warning.
+    - name: Read back the xmrig active state
+      ansible.builtin.command:
+        cmd: systemctl is-active xmrig
+      register: xmrig_active_state
+      changed_when: false
+      check_mode: false
+      failed_when: false
+      when:
+        - not (mining_enabled | default(false) | bool)
+        - (xmrig_unit_present.stdout | default('') | trim) | length > 0
+      tags: [xmrig, always]
+
+    - name: Assert XMRig converged to a stopped state (fail closed)
+      ansible.builtin.assert:
+        that:
+          - (xmrig_active_state.stdout | default('') | trim) != 'active'
+        fail_msg: >-
+          mining_enabled is false, so xmrig must be stopped, but
+          `systemctl is-active xmrig` reports
+          "{{ xmrig_active_state.stdout | default('unknown') | trim }}".
+          Shutdown did not converge and the run is not reporting success.
+      # Skipped in check mode: check mode cannot converge, so reading the end
+      # state back there would fail on a correctly-gated host.
+      when:
+        - not ansible_check_mode
+        - not (mining_enabled | default(false) | bool)
+        - (xmrig_unit_present.stdout | default('') | trim) | length > 0
+      tags: [xmrig, always]
+
     - name: Assert mining is explicitly enabled before applying xmrig role
       ansible.builtin.assert:
         that:
-          - mining_enabled | bool
+          - (mining_enabled | default(false) | bool) | bool
         fail_msg: >-
           XMRig play is gated. Pass `-e mining_enabled=true` to apply this role,
           or set `mining_enabled: true` in inventory. Decision filed 2026-04-06.
         success_msg: "Mining gate open — applying xmrig role."
+      # Install path ONLY. This assert must not fire on the shutdown path: doing
+      # so is what excluded mining-disabled hosts from Fleet Hardening. The
+      # load-bearing start authorization is the `when` on the role below.
+      when: (mining_enabled | default(false) | bool) | bool
       tags: [xmrig, always]
   roles:
     - role: xmrig
-      when: mining_enabled | bool
+      when: (mining_enabled | default(false) | bool) | bool
       tags: [xmrig]
 
 - name: Fleet Hardening — Security

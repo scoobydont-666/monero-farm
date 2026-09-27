@@ -1,0 +1,42 @@
+---
+# task-18040 (2026-09-27) — operator shutdown, made durable.
+#
+# Authority: Josh direct, 2026-09-27 ~01:30Z — "shut down p2pool, disable the
+# node" and "stop the miners". The live shutdown was performed separately on
+# miniboss; these variables make that state survive any later playbook run
+# instead of being undone by one.
+#
+# A disabled unit is ENFORCED into stopped+disabled on every run, not skipped,
+# so a re-enable cannot slip in through an unrelated playbook run.
+#
+# Flag names are deliberately suffixed _run_enabled. hydra-project already sets
+# `p2pool_enabled: true` and `monero_enabled: true` for miniboss in
+# ansible/inventory/host_vars/miniboss.yml, and its ansible/playbooks/07-mining.yml
+# applies the monerod/p2pool/xmrig roles that live in this repo. Reusing those
+# names here would let that inventory's `true` win precedence and start the pool
+# again. These names are set only by this repository.
+#
+# Installed-unit inventory is deliberately NOT removed: binaries, systemd units,
+# configuration and chain data stay in place, so the shutdown is reversible and
+# nothing is deleted.
+#
+# To re-enable (deliberate, never incidental):
+#   ansible-playbook site.yml -e monerod_run_enabled=true -e p2pool_run_enabled=true \
+#     -e exporters_run_enabled=true
+#
+# No wallet address, key or host name appears here. This repository is public.
+
+# Full node + every configured P2Pool sidechain (main, mini, nano).
+monerod_run_enabled: false
+p2pool_run_enabled: false
+
+# P2Pool exporters (p2pool-exporter and p2pool-observer-exporter).
+exporters_run_enabled: false
+
+# No host autostarts a miner. Hosts in the miners / cluster_miners groups are
+# installed but not started.
+xmrig_autostart: false
+
+# The XMRig play stays gated as well: belt-and-braces, so that even an explicit
+# mining_enabled=true cannot autostart a miner.
+mining_enabled: false

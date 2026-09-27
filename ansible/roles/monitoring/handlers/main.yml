@@ -17,12 +17,14 @@
 - name: restart unified-exporter
   ansible.builtin.systemd:
     name: p2pool-exporter
-    state: restarted
+    # task-18040: governed by exporters_run_enabled, like its enforce task.
+    state: "{{ 'restarted' if exporters_run_enabled | default(false) | bool else 'stopped' }}"
 
 - name: restart observer-exporter
   ansible.builtin.systemd:
     name: p2pool-observer-exporter
-    state: restarted
+    # task-18040: governed by exporters_run_enabled, like its enforce task.
+    state: "{{ 'restarted' if exporters_run_enabled | default(false) | bool else 'stopped' }}"
 
 - name: reload systemd
   ansible.builtin.systemd:

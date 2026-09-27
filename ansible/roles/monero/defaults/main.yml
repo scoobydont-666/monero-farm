@@ -16,3 +16,9 @@ monero_version: "0.18.4.6"
 monero_sha256: "60cfc32d39c6fe6c19b23513d02017fe9055d2e412ee4cbc30fa40ba811fe052"
 monero_install_dir: /opt/monero
 monero_download_url: "https://downloads.getmonero.org/cli/monero-linux-x64-v{{ monero_version }}.tar.bz2"
+
+# task-18040 (2026-09-27): operator shutdown. monerod is OFF unless explicitly enabled.
+# A later playbook run re-asserts stopped+disabled rather than silently skipping,
+# so the shutdown survives IaC application. Re-enable deliberately:
+#   -e monerod_run_enabled=true   (or set it in inventory group_vars)
+monerod_run_enabled: false

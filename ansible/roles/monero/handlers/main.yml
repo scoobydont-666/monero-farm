@@ -3,7 +3,10 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
+# task-18040: converge on the run flag so a notified handler cannot restart
+# a unit the enforce task just stopped. While the flag is false this sets the unit
+# stopped rather than leaving it running.
 - name: restart monerod
   ansible.builtin.systemd:
     name: monerod
-    state: restarted
+    state: "{{ 'restarted' if monerod_run_enabled | default(false) | bool else 'stopped' }}"

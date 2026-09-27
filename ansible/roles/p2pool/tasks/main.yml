@@ -146,11 +146,14 @@
   notify:
     - reload systemd
 
-- name: Enable and start p2pool instances
+# task-18040 (2026-09-27): enforce the operator shutdown on every run. This
+# covers every configured sidechain (main/mini/nano) because it loops the same
+# p2pool_instances list, so a sidechain added later is disabled too.
+- name: Enforce p2pool instance service state
   ansible.builtin.systemd:
     name: "p2pool-{{ item.mode }}"
-    state: started
-    enabled: true
+    state: "{{ 'started' if p2pool_run_enabled | bool else 'stopped' }}"
+    enabled: "{{ p2pool_run_enabled | bool }}"
     daemon_reload: true
   loop: "{{ p2pool_instances }}"
   loop_control:

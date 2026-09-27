@@ -9,14 +9,14 @@
 - name: restart p2pool-main
   ansible.builtin.systemd:
     name: p2pool-main
-    state: restarted
+    state: "{{ 'restarted' if p2pool_run_enabled | default(false) | bool else 'stopped' }}"
 
 - name: restart p2pool-mini
   ansible.builtin.systemd:
     name: p2pool-mini
-    state: restarted
+    state: "{{ 'restarted' if p2pool_run_enabled | default(false) | bool else 'stopped' }}"
 
 - name: restart p2pool-nano
   ansible.builtin.systemd:
     name: p2pool-nano
-    state: restarted
+    state: "{{ 'restarted' if p2pool_run_enabled | default(false) | bool else 'stopped' }}"

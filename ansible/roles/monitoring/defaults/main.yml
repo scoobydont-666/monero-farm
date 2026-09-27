@@ -28,3 +28,8 @@ blackbox_exporter_port: 9115
 
 # Grafana
 grafana_dashboard_dir: /var/lib/grafana/dashboards
+
+# task-18040 (2026-09-27): operator shutdown. Both P2Pool exporters (p2pool-exporter
+# and p2pool-observer-exporter) are OFF unless explicitly enabled. They scrape a
+# pool that is not running, so leaving them up only produces dead targets.
+exporters_run_enabled: false
