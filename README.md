@@ -26,6 +26,44 @@ Part of [Project Hydra](https://github.com/scoobydont-666) — Head #2.
 
 ---
 
+## Mining stack status — OFF by default (2026-09-27)
+
+**The P2Pool / monerod / XMRig stack is disabled by default.** This is an
+operator decision, not a fault: see `CHANGELOG.md` and
+`ansible/group_vars/all/mining_shutdown.yml`.
+
+| component | flag | default | effect |
+|---|---|---|---|
+| monerod (full node) | `monerod_run_enabled` | `false` | stopped + disabled |
+| P2Pool, every configured sidechain | `p2pool_run_enabled` | `false` | stopped + disabled |
+| `p2pool-exporter` | `exporters_run_enabled` | `false` | stopped + disabled |
+| `p2pool-observer-exporter` | `exporters_run_enabled` | `false` | stopped + disabled |
+| XMRig on any declared miner | `xmrig_autostart` | `false` | installed, not started |
+| XMRig play | `mining_enabled` | `false` | role not applied |
+
+A disabled unit is **enforced** into `stopped` + `disabled` on every playbook
+run. It is not merely skipped, so a later run cannot silently re-enable it.
+
+Everything is still installed: binaries, systemd units, configuration and chain
+data remain in place. Nothing is deleted, and nothing is irreversible.
+
+### Re-enabling
+
+Deliberate and explicit — never a side effect of an unrelated run:
+
+```bash
+ansible-playbook site.yml \
+  -e monerod_run_enabled=true -e p2pool_run_enabled=true -e exporters_run_enabled=true
+```
+
+Per-host opt-in goes in inventory `group_vars`; the fleet-wide default stays off.
+
+### Monitoring after shutdown
+
+The exporters are stopped with the pool, so anything scraping them will see
+targets disappear. If alerts reference those targets, expect them to fire until
+the rules are updated separately. See `CHANGELOG.md` and the monitoring notes.
+
 ## Architecture
 
 Current active dataflow (P2Pool relay only):

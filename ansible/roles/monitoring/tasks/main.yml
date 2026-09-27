@@ -59,11 +59,12 @@
     - reload systemd
     - restart unified-exporter
 
-- name: Enable and start unified exporter
+# task-18040 (2026-09-27): enforce the operator shutdown (see monero role).
+- name: Enforce unified exporter service state
   ansible.builtin.systemd:
     name: p2pool-exporter
-    state: started
-    enabled: true
+    state: "{{ 'started' if exporters_run_enabled | bool else 'stopped' }}"
+    enabled: "{{ exporters_run_enabled | bool }}"
     daemon_reload: true
 
 # --- P2Pool Observer Exporter (scrapes p2pool.observer for miner stats) ---
@@ -93,11 +94,12 @@
     - reload systemd
     - restart observer-exporter
 
-- name: Enable and start observer exporter
+# task-18040 (2026-09-27): enforce the operator shutdown (see monero role).
+- name: Enforce observer exporter service state
   ansible.builtin.systemd:
     name: p2pool-observer-exporter
-    state: started
-    enabled: true
+    state: "{{ 'started' if exporters_run_enabled | bool else 'stopped' }}"
+    enabled: "{{ exporters_run_enabled | bool }}"
     daemon_reload: true
 
 # --- Prometheus ---

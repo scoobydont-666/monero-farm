@@ -87,9 +87,12 @@
     - reload systemd
     - restart monerod
 
-- name: Enable and start monerod
+# task-18040 (2026-09-27): enforce the operator shutdown on every run. While
+# monerod_run_enabled is false this drives the unit to stopped+disabled, so a later
+# playbook run cannot re-enable what was deliberately taken down.
+- name: Enforce monerod service state
   ansible.builtin.systemd:
     name: monerod
-    state: started
-    enabled: true
+    state: "{{ 'started' if monerod_run_enabled | bool else 'stopped' }}"
+    enabled: "{{ monerod_run_enabled | bool }}"
     daemon_reload: true

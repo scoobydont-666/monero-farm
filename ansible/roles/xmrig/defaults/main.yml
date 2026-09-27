@@ -4,7 +4,9 @@ xmrig_http_port: 8082    # NOT 8080 (Critical Rule #10)
 xmrig_http_bind: 127.0.0.1
 p2pool_stratum_host: 127.0.0.1
 p2pool_stratum_port: 3333
-xmrig_autostart: true    # false for cluster nodes (hydra-profile manages lifecycle)
+xmrig_autostart: false   # task-18040 (2026-09-27): operator "stop the miners".
+                          # Hosts must opt in per-host; hydra-profile nodes
+                          # already passed false. No XMRig autostarts by default.
 
 # Binary installation
 xmrig_version: "6.25.0"
