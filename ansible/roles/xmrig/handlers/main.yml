@@ -6,4 +6,6 @@
 - name: restart xmrig
   ansible.builtin.systemd:
     name: xmrig
-    state: restarted
+    # task-18040: xmrig_autostart=false must also STOP an already-running miner
+    # when a unit/config change notifies this handler, not just decline to start it.
+    state: "{{ 'restarted' if xmrig_autostart | default(false) | bool else 'stopped' }}"
