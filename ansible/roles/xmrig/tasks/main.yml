@@ -99,6 +99,9 @@
 - name: Enable and start xmrig
   ansible.builtin.systemd:
     name: xmrig
-    state: "{{ 'started' if xmrig_autostart | default(true) else 'stopped' }}"
-    enabled: "{{ xmrig_autostart | default(true) }}"
+    # task-18040: | bool required here too, same reason as the enabled line below.
+    state: "{{ 'started' if xmrig_autostart | default(true) | bool else 'stopped' }}"
+    # task-18040: | bool is required. Without it a STRING "false" is truthy in
+    # Jinja, so `-e xmrig_autostart="false"` would enable the miner.
+    enabled: "{{ xmrig_autostart | default(true) | bool }}"
     daemon_reload: true

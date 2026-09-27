@@ -49,13 +49,26 @@
   # Gated: mining is OFF by default since 2026-04-06. Enable explicitly per
   # the header comment when Josh authorizes. The role stays installed; only
   # this play's execution is conditional.
-  vars:
-    mining_enabled: "{{ mining_enabled | default(false) }}"
   pre_tasks:
+    # task-18040: shutdown convergence runs BEFORE and independently of the
+    # mining admission gate. Gating the role behind mining_enabled meant that
+    # with mining off the role never ran, so a miner that was already running
+    # was never stopped -- the flag only prevented NEW starts, it did not
+    # converge an existing one. This task runs on every play, gated only on the
+    # intent to have no miner running, and it never starts anything.
+    - name: "Converge XMRig shutdown (never starts; runs regardless of the mining gate)"
+      ansible.builtin.systemd:
+        name: xmrig
+        state: stopped
+        enabled: false
+      when: not (mining_enabled | default(false) | bool)
+      failed_when: false
+      tags: [xmrig, always]
+
     - name: Assert mining is explicitly enabled before applying xmrig role
       ansible.builtin.assert:
         that:
-          - mining_enabled | bool
+          - (mining_enabled | default(false) | bool) | bool
         fail_msg: >-
           XMRig play is gated. Pass `-e mining_enabled=true` to apply this role,
           or set `mining_enabled: true` in inventory. Decision filed 2026-04-06.
@@ -63,7 +76,7 @@
       tags: [xmrig, always]
   roles:
     - role: xmrig
-      when: mining_enabled | bool
+      when: (mining_enabled | default(false) | bool) | bool
       tags: [xmrig]
 
 - name: Fleet Hardening — Security
